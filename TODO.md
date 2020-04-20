@@ -1,4 +1,5 @@
 ## TODO
+* Use cmake
 * use `map<int, ...>` for group data representation instead of vector
 * Templates for geometric routines over `LineSegment` containers
 * Manual - what and how can user modify behaviour
