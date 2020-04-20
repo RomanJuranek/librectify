@@ -1,0 +1,188 @@
+/*
+
+*/
+
+#include <vector>
+#include <queue>
+#include <list>
+#include <cmath>
+#include <omp.h>
+
+#include <Eigen/Core>
+
+#include "dump.h"
+#include "image.h"
+#include "filter.h"
+#include "liblgroup.h"
+
+#include <iostream>
+
+
+using namespace Eigen;
+using namespace std;
+
+
+void maximum_filter(const Image & image, Image & out, int size)
+{
+    int n = 2*size+1;
+    out.resizeLike(image);
+    out.setZero();
+    #ifdef _OPENMP
+    int _t = get_num_threads();
+    #pragma omp parallel for collapse(2), num_threads(_t)
+    #endif
+    for (int i = 0; i < image.rows()-n+1; ++i)
+        for (int j = 0; j < image.cols()-n+1; ++j)
+            out(i+size,j+size) = image.block(i,j,n,n).maxCoeff();
+}
+
+
+void binary_dilate(const Mask & image, Mask & out)
+{
+    int n = 3;
+    out.resizeLike(image);
+    out.setZero();
+    #ifdef _OPENMP
+    int _t = get_num_threads();
+    #pragma omp parallel for collapse(2), num_threads(_t)
+    #endif
+    for (int i = 0; i < image.rows()-n+1; ++i)
+        for (int j = 0; j < image.cols()-n+1; ++j)
+            out(i+1,j+1) = image.block<3,3>(i,j).maxCoeff() != 0;
+}
+
+
+ArrayXXf gauss_deriv_kernel(int size, float sigma, bool dir_x)
+{
+    int n = 2*size+1;
+    ArrayXXf H(n,n);
+    for (int i = 0; i < H.rows(); ++i)
+        for (int j = 0; j < H.cols(); ++j)
+        {
+            int x = j - size;
+            int y = i - size;
+            float z = float((dir_x) ? x : y);
+            H(i,j) = z / (2*M_PI*pow(sigma,4)) * exp(-(pow(x,2)+pow(y,2))/(2*pow(sigma,2)));
+        }
+    return H;
+}
+
+
+void conv_2d(const Image & image, const Image & kernel, Image & out)
+{
+    auto nr = kernel.rows();
+    auto nc = kernel.cols();
+
+    out.resizeLike(image);
+    out.setZero();
+
+    #ifdef _OPENMP
+    int _t = get_num_threads();
+    #pragma omp parallel for collapse(2), num_threads(_t)
+    #endif
+    for (int i = 0; i < image.rows()-nr+1; ++i)
+        for (int j = 0; j < image.cols()-nc+1; ++j)
+            out(i+nr/2,j+nc/2) = (image.block(i,j,nr,nc) * kernel).sum();
+}
+
+
+void flood_init_mask(Mask & mask)
+{
+    mask.row(0).setConstant(1);
+    mask.row(mask.rows()-1).setConstant(1);
+    mask.col(0).setConstant(1);
+    mask.col(mask.cols()-1).setConstant(1);
+}
+
+
+int flood(const Image & image, const Location seed, float tolerance, Mask & mask, MatrixX2i & px_loc, VectorXf & px_val)
+{
+    float seed_val = image(seed[0], seed[1]);
+    float min_val = (1-tolerance) * seed_val;
+    
+    vector<Location> res;
+    res.reserve(256);
+
+    queue<Location> pixel_queue;
+    pixel_queue.push({seed[0], seed[1]});
+    while (!pixel_queue.empty())
+    {
+        auto p = pixel_queue.front();
+        pixel_queue.pop();
+        auto r = p[0];
+        auto c = p[1];
+        if (!mask(r,c) && (image(r,c) > min_val))
+        {
+            res.push_back(p);
+            mask(r,c) = 1;
+            pixel_queue.push({r,c-1});
+            pixel_queue.push({r,c+1});
+            pixel_queue.push({r+1,c});
+            pixel_queue.push({r-1,c});
+            pixel_queue.push({r-1,c-1});
+            pixel_queue.push({r-1,c+1});
+            pixel_queue.push({r+1,c-1});
+            pixel_queue.push({r+1,c+1});
+        }
+    }
+
+    auto n_pixels = res.size();
+    px_loc.resize(n_pixels, 2);
+    px_val.resize(n_pixels);
+    int i = 0;
+    for (auto & r: res)
+    {
+        px_loc(i,0) = int(r[0]);
+        px_loc(i,1) = int(r[1]);
+        px_val(i) = image(r[0],r[1]);
+        ++i;
+    }
+
+    return int(n_pixels);
+}
+
+
+vector<PeakPoint> find_peaks(const Image & image, int size, float min_value)
+{
+    Image max_im;
+    maximum_filter(image, max_im, size);
+    auto peaks = ((max_im == image) && (image > min_value));
+
+    vector<PeakPoint> res;
+    res.reserve(8*1024);
+
+    #ifdef _OPENMP
+    int _t = get_num_threads();
+    #pragma omp parallel for collapse(2), num_threads(_t)
+    #endif
+    for (int i = 0; i < peaks.rows(); ++i)
+        for (int j = 0; j < peaks.cols(); ++j)
+        {
+            if (peaks(i,j) == 1)
+            {
+                #ifdef _OPENMP
+                #pragma omp critical
+                #endif
+                res.push_back({i,j,image(i,j)});
+            }
+        }
+
+    std::sort(res.begin(), res.end(), [](const PeakPoint & i, const PeakPoint & j) {return i.v > j.v;} );
+    return res;
+}
+
+/*
+#include <Eigen/CXX11/Tensor>
+
+ Eigen::Tensor<float,2> test()
+{
+    Eigen::Tensor<float,2> im(2048,2048);
+    im.setRandom();
+    Eigen::Tensor<float,2> X(5,5);
+    X.setRandom();
+    Eigen::Tensor<float,2> out(2048,2048);
+    Eigen::array<ptrdiff_t,2> dims({0,1});
+    out = im.convolve(X, dims);
+    return out;
+}
+*/
