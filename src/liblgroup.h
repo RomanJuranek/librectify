@@ -17,36 +17,6 @@ buffer=X, stride=S, or 2/ buffer=X+S*(H-1), stride=-S
 
 Both versions are semantically equivalent.
 
-Example usage
--------------
-Suppose we have an image of size W,H and stride S on an address X. To detect
-lines in the image we can call:
-
-    int n_lines;
-    LineSegments * lines = line_segments(X, W, H, S, &n_lines, 10);
-
-These lines are not assigned to any group (group_id=-1). Now new lines can be
-added (e.g. user specified). Group analysis is done by calling
-line_segment_groups.
-
-    int n_groups = line_segment_groups(lines, n_lines);
-
-WARNING - The array `lines` was modified in place and order of lines was
-changed! The number of lines remained unaffected, though some lines might not be
-assigned to any group.
-
-Each group can ge described with its vanishing point.
-
-    HomogenousPoint * vps = fit_vanishing_points(lines, n_lines);
-
-vps is an array with a point for each group - vps[g] corresponds to a point for
-lines with group_id==g.
-
-When the work is finished, allocated data must be cleaned up
-
-    delete [] lines;
-    delete [] vps;
-
 */
 
 
@@ -129,7 +99,9 @@ struct ImageTransform
 
 
 /*
-Set number of threads to be used by the library. The function sets 
+Set number of threads to be used by the library.
+The function sets internal state and does not
+interfere with global OpenMP settings.
 */
 extern "C" void DLL_PUBLIC set_num_threads(int t);
 
@@ -239,7 +211,26 @@ extern "C" DLL_PUBLIC Point fit_vanishing_point(
     const LineSegment * lines, int n_lines,
     int group);
 
-    
-// void assign_groups(const LineSegment * lines, int n_lines, LineSegment * new_lines, int n_new_lines);
+/*
+Find closest group for new lines
+
+Inputs
+------
+lines_array, n_lines: Lines with assigned group_id
+new_lines, n_new_lines: Lines to which group_id will be asigned
+angular_tolerance : tolerance in degrees.
+
+The function takes vanishing points of lines in lines_array and
+assigns each line in new_lines to the closes group based on
+the angular inclination between vanishing points and the line.
+Lines outide angular_tolerance are kept unchanged.
+
+WARNING: new_lines are modified (group_id member)
+*/    
+extern "C" DLL_PUBLIC void find_closest_group(
+    const LineSegment * lines_array, int n_lines,
+    LineSegment * new_lines_array, int n_new_lines,
+    float angular_tolarance);
+
 
 // } // namespace lgroup

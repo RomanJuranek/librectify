@@ -171,6 +171,10 @@ Point fit_vanishing_point(const LineSegment * lines_array, int n_lines, int grou
     VectorXf wts = weigths(lines);
     VectorXf len = length(lines);
 
+    // cout << h << endl << endl;
+    // cout << wts << endl << endl;
+    // cout << len << endl << endl;
+
     if (group < 0)
     {
         auto vp = VanishingPoint(h, len.cwiseProduct(wts));
@@ -185,22 +189,51 @@ Point fit_vanishing_point(const LineSegment * lines_array, int n_lines, int grou
 }
 
 
-int find_closest_group(
+void find_closest_group(
     const LineSegment * lines_array, int n_lines,
-    const LineSegment * new_lines_array, int n_new_lines)
+    LineSegment * new_lines_array, int n_new_lines,
+    float angular_tolarance)
 {
     vector<LineSegment> lines(lines_array, lines_array+n_lines);
-    vector<LineSegment> new_lines(new_lines_array, new_lines_array+n_new_lines);
-
-    Matrix2f a = anchor_point(new_lines);
-    Matrix2f d = direction_vector(new_lines);
-
     vector<VanishingPoint> vps = fit_vanishing_points(lines);
+
+    vector<LineSegment> new_lines(new_lines_array, new_lines_array+n_new_lines);
+    MatrixX2f a = anchor_point(new_lines);
+    MatrixX2f d = direction_vector(new_lines).rowwise().normalized();
+    
+    ArrayXf min_inclination = ArrayXf::Zero(n_new_lines);
+    ArrayXi min_index = ArrayXi::Zero(n_new_lines);
+
+    // cout << "size: " << new_lines.size() << endl;
+    // cout << "a=\n" << a << endl;
+    // cout << "d=\n" << d << endl;
 
     for (size_t i = 0; i < vps.size(); ++i)
     {
         Vector3f p = vps[i].coords;
-        VectorXf x = inclination(a, d, p);
+        ArrayXf x = inclination(a, d, p).array();
+
+        // cout << "p: " << RowVector3f(p) << endl;
+        // cout << "x: " << x.transpose() << endl;
+        
+        Array<bool,-1,1> mask = (x > min_inclination).eval();
+        min_inclination = mask.select(x, min_inclination);
+        min_index = mask.select(i, min_index);
+    }
+
+    float thr = cos(angular_tolarance / 180 * M_PI);
+
+    // cout << "incl = " << RowVectorXf(min_inclination) << endl;
+    // cout << "idx = " << RowVectorXi(min_index) << endl;
+    // cout << thr << endl;
+
+    for (size_t i = 0; i < n_new_lines; ++i)
+    {
+        LineSegment & l = new_lines_array[i];
+        if (min_inclination(i) > thr)
+        {
+            l.group_id = min_index(i);
+        }
     }
 
 }
