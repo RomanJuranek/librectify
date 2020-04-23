@@ -34,7 +34,7 @@ int main()
 
     LineSegment line = {-1,-1, 1, 0, 1,0, -1};
 
-    find_closest_group(ls, n_lines, &line, 1, 10);
+    assign_to_group(ls, n_lines, &line, 1, 10);
 
     cout << "Assigned to group "<< line.group_id << endl;
 

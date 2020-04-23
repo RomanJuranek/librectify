@@ -44,7 +44,7 @@ LineSegment * find_line_segment_groups(
 {
     // Init image from buffer
     auto lines = _find_line_segment_on_buffer(buffer, width, height, stride);
-    vector<LineSegment> filtered = lines;
+    vector<LineSegment> filtered;
     filtered.reserve(lines.size());
     _filter_lines(lines.begin(), lines.end(), back_inserter(filtered), min_length);
     
@@ -189,7 +189,7 @@ Point fit_vanishing_point(const LineSegment * lines_array, int n_lines, int grou
 }
 
 
-void find_closest_group(
+void assign_to_group(
     const LineSegment * lines_array, int n_lines,
     LineSegment * new_lines_array, int n_new_lines,
     float angular_tolarance)

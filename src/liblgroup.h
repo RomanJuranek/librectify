@@ -227,7 +227,7 @@ Lines outide angular_tolerance are kept unchanged.
 
 WARNING: new_lines are modified (group_id member)
 */    
-extern "C" DLL_PUBLIC void find_closest_group(
+extern "C" DLL_PUBLIC void assign_to_group(
     const LineSegment * lines_array, int n_lines,
     LineSegment * new_lines_array, int n_new_lines,
     float angular_tolarance);
