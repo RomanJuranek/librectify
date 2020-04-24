@@ -8,6 +8,9 @@
 * Fixed numerical instability in transform computation.
 * `ImageTransform` now contains the actual vanishing points used for transform computation.
 * Command line arguments in `autorectify` for selection of the transform
+* Fixed error in line filtering (which caused that the filter had no effect)
+* More compact lines, and lower number of lines - improves stability
+* `Point` is pure struct with `x`, `y`, `z` members with no c++ interface
 
 ### Whats new in **v0.9.3**
 * Support for negative stride
