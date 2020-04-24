@@ -92,10 +92,6 @@ float length(const LineSegment & l)
 Vector4f bounding_box(const vector<LineSegment> & lines)
 {
     MatrixX2f coords(2*lines.size(), 2);
-    #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for num_threads(_t)
-    #endif
     for (size_t i = 0; i < lines.size(); ++i)
     {
         const LineSegment & l = lines[i];
@@ -112,10 +108,6 @@ Vector4f bounding_box(const vector<LineSegment> & lines)
 MatrixX3f homogeneous(const vector<LineSegment> & lines)
 {
     MatrixX3f h(lines.size(), 3);
-    #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for num_threads(_t)
-    #endif
     for (size_t i = 0; i < lines.size(); ++i)
     {
         h.row(i) = homogeneous(lines[i]);

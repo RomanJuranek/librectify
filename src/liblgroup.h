@@ -24,7 +24,7 @@ Both versions are semantically equivalent.
 
 
 #ifdef _WINDOWS
-    #ifdef LIBLGROUP_EXPORTS
+    #ifdef LIBRECTIFY_EXPORTS
         #define DLL_PUBLIC __declspec(dllexport)
     #else
         #define DLL_PUBLIC __declspec(dllimport)
@@ -58,20 +58,7 @@ Structure which holds spatial points in homogenous coordinates.
 */
 struct Point
 {
-    float data[3];
-    Point():
-        data{0,0,0} {}
-    Point(float x, float y, float z):
-        data{x,y,z} {}
-    float & operator[](int i) {return data[i]; }
-    float operator[](int i) const {return data[i]; }
-    float x() const { return data[0]; }
-    float & x() { return data[0]; }
-    float y() const { return data[1]; }
-    float & y() { return data[1]; }
-    float z() const { return data[2]; }
-    float & z() { return data[2]; }
-    bool is_finite() const { return z() < 1e-6; }
+    float x, y, z;
 };
 
 /*

@@ -208,7 +208,7 @@ vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float
     int _t = get_num_threads();
     #pragma omp parallel for num_threads(_t)
     #endif
-    for (size_t i = 0; i < seed.size(); ++i)
+    for (int i = 0; i < int(seed.size()); ++i)
     {
         seed_bin[i] = grad_bin(seed[i].i, seed[i].j);
     }

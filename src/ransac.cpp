@@ -28,7 +28,7 @@ vector<int> randsample(size_t n, size_t k)
 {
     k = min(n, k);
     set<int> res;
-    auto random_index = uniform_int_distribution<size_t>(0, n-1);
+    auto random_index = uniform_int_distribution<int>(0, int(n-1));
     while (res.size() < k)
     {
         res.insert(random_index(rng));
@@ -58,7 +58,7 @@ public:
 
     int size() const
     {
-        return h.rows();
+        return int(h.rows());
     }
 
     int complexity() const
@@ -113,7 +113,7 @@ VectorXf RANSAC(LinePencilModel & model, vector<int> indices, int max_iter, floa
     for (int iter=0; iter < max_iter; ++iter)
     {
         vector<int> samples(2);
-        sample(indices, 2, indices.size(), samples.begin());
+        sample(indices, 2, int(indices.size()), samples.begin());
         VectorXf h = model.fit(samples);
         ArrayXf f = model.fittness(h, indices, tolerance);
         float fit = f.sum();
@@ -306,7 +306,7 @@ int estimate_single_line_group(
     VectorXf p = RANSAC(model, indices, RANSAC_MAX_ITER, tolerance);
     auto inliers = model.inliers(p, indices, tolerance);
     partition_indices(indices, inliers, inls_inds, outl_inds);
-    int n_inliers = inliers.count();
+    int n_inliers = int(inliers.count());
     for (int i=0; i<n_inliers; ++i)
         *inls_groups++ = group_id;
     return n_inliers;

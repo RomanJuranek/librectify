@@ -14,6 +14,7 @@ Image Processing Algorithms.
 #include <string>
 #include <vector>
 #include <sstream>
+#include <fstream>
 #include <iterator>
 
 #include "liblgroup.h"
@@ -42,10 +43,10 @@ void dump_lines_csv(II first, II last, ostream & f)
 
 void dump_tform(const ImageTransform & t, ostream & f)
 {
-    f << t.top_left.x() << "," << t.top_left.y() << endl;
-    f << t.top_right.x() << "," << t.top_right.y() << endl;
-    f << t.bottom_left.x() << "," << t.bottom_left.y() << endl;
-    f << t.bottom_right.x() << "," << t.bottom_right.y() << endl;
+    f << t.top_left.x << "," << t.top_left.y << endl;
+    f << t.top_right.x << "," << t.top_right.y << endl;
+    f << t.bottom_left.x << "," << t.bottom_left.y << endl;
+    f << t.bottom_right.x << "," << t.bottom_right.y << endl;
 }
 
 // Downscale image if required (larger than max_size) and return scale
@@ -143,10 +144,10 @@ Mat homography_from_corners(const ImageTransform & t)
     src.push_back(Point2f(t.width, t.height));
 
     vector<Point2f> dst;
-    dst.push_back(Point2f(t.top_left.x(),    t.top_left.y()));
-    dst.push_back(Point2f(t.top_right.x(),   t.top_right.y()));
-    dst.push_back(Point2f(t.bottom_left.x(), t.bottom_left.y()));
-    dst.push_back(Point2f(t.bottom_right.x(),t.bottom_right.y()));
+    dst.push_back(Point2f(t.top_left.x,    t.top_left.y));
+    dst.push_back(Point2f(t.top_right.x,   t.top_right.y));
+    dst.push_back(Point2f(t.bottom_left.x, t.bottom_left.y));
+    dst.push_back(Point2f(t.bottom_right.x,t.bottom_right.y));
 
     Mat H = findHomography(src, dst);
     return H;

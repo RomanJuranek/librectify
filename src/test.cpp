@@ -6,7 +6,7 @@ using namespace std;
 
 ostream & operator<<(ostream & out, const Point & p)
 {
-    out << "[" << p.x() << "," << p.y() << "," << p.z() << "]";
+    out << "[" << p.x << "," << p.y << "," << p.z << "]";
     return out;
 }
 

@@ -29,7 +29,7 @@ void maximum_filter(const Image & image, Image & out, int size)
     out.setZero();
     #ifdef _OPENMP
     int _t = get_num_threads();
-    #pragma omp parallel for collapse(2), num_threads(_t)
+    #pragma omp parallel for num_threads(_t)
     #endif
     for (int i = 0; i < image.rows()-n+1; ++i)
         for (int j = 0; j < image.cols()-n+1; ++j)
@@ -44,7 +44,7 @@ void binary_dilate(const Mask & image, Mask & out)
     out.setZero();
     #ifdef _OPENMP
     int _t = get_num_threads();
-    #pragma omp parallel for collapse(2), num_threads(_t)
+    #pragma omp parallel for num_threads(_t)
     #endif
     for (int i = 0; i < image.rows()-n+1; ++i)
         for (int j = 0; j < image.cols()-n+1; ++j)
@@ -59,10 +59,10 @@ ArrayXXf gauss_deriv_kernel(int size, float sigma, bool dir_x)
     for (int i = 0; i < H.rows(); ++i)
         for (int j = 0; j < H.cols(); ++j)
         {
-            int x = j - size;
-            int y = i - size;
+            float x = float(j - size);
+            float y = float(i - size);
             float z = float((dir_x) ? x : y);
-            H(i,j) = z / (2*M_PI*pow(sigma,4)) * exp(-(pow(x,2)+pow(y,2))/(2*pow(sigma,2)));
+            H(i,j) = z / float(2*M_PI*pow(sigma,4.0f)) * exp(-(pow(x,2.0f)+pow(y,2.0f))/(2*pow(sigma,2.0f)));
         }
     return H;
 }
@@ -78,7 +78,7 @@ void conv_2d(const Image & image, const Image & kernel, Image & out)
 
     #ifdef _OPENMP
     int _t = get_num_threads();
-    #pragma omp parallel for collapse(2), num_threads(_t)
+    #pragma omp parallel for num_threads(_t)
     #endif
     for (int i = 0; i < image.rows()-nr+1; ++i)
         for (int j = 0; j < image.cols()-nc+1; ++j)
@@ -153,7 +153,7 @@ vector<PeakPoint> find_peaks(const Image & image, int size, float min_value)
 
     #ifdef _OPENMP
     int _t = get_num_threads();
-    #pragma omp parallel for collapse(2), num_threads(_t)
+    #pragma omp parallel for num_threads(_t)
     #endif
     for (int i = 0; i < peaks.rows(); ++i)
         for (int j = 0; j < peaks.cols(); ++j)

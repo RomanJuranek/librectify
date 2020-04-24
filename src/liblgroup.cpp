@@ -67,7 +67,7 @@ Point point_from_vector(const Vector3f & p)
 
 Vector3f vector_from_point(const Point & p)
 {
-    return Vector3f {p.x(), p.y(), p.z()};
+    return Vector3f {p.x, p.y, p.z};
 }
 
 ImageTransform compute_rectification_transform_from_vp(
@@ -218,10 +218,10 @@ void assign_to_group(
         
         Array<bool,-1,1> mask = (x > min_inclination).eval();
         min_inclination = mask.select(x, min_inclination);
-        min_index = mask.select(i, min_index);
+        min_index = mask.select(int(i), min_index);
     }
-
-    float thr = cos(angular_tolarance / 180 * M_PI);
+    
+    float thr = cos(angular_tolarance / 180 * float(M_PI));
 
     // cout << "incl = " << RowVectorXf(min_inclination) << endl;
     // cout << "idx = " << RowVectorXi(min_index) << endl;

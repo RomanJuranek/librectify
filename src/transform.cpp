@@ -31,7 +31,7 @@ VanishingPoint::VanishingPoint(const MatrixX3f & h, const VectorXf & w)
     eig.eigenvalues().minCoeff(&k);
     coords = normalize_point(eig.eigenvectors().col(k));
     residual = eig.eigenvalues().coeff(k);
-    n_inliers = w.size();
+    n_inliers = int(w.size());
     support = w.sum();
     #if LGROUP_DEBUG_PRINTS
     clog << "VP: coords=" << RowVector3f(coords) << ", residual=" << residual << ", support=" << support << endl;
@@ -125,8 +125,8 @@ Matrix<float,4,3> compute_image_transform(
 
 
     Matrix<float,3,4> coords;
-    coords.row(0) = Array4f(0,width,width,0) - float(width)/2;
-    coords.row(1) = Array4f(0,0,height,height) - float(height)/2;
+    coords.row(0) = Array4i(0,width,width,0).cast<float>() - float(width)/2;
+    coords.row(1) = Array4i(0,0,height,height).cast<float>() - float(height)/2;
     coords.row(2) = Vector4f::Ones();
 
     Matrix<float,3,4> warped_coords = M * coords;
@@ -151,7 +151,7 @@ VanishingPoint select_vertical_point(
     float angular_tolerance,
     float min_distance)
 {
-    float cos_threshold = cos(angular_tolerance/180.0f * M_PI);
+    float cos_threshold = cos(angular_tolerance/180.0f * float(M_PI));
     #if LGROUP_DEBUG_PRINTS
     clog << "select_vertical_point: min distance=" << min_distance << endl;
     clog << "select_vertical_point: threshold=" << cos_threshold << endl;
