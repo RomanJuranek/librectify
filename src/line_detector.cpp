@@ -11,18 +11,23 @@ TACR project TH04010394, Progressive Image Processing Algorithms.
 #include <vector>
 #include <numeric>
 #include <algorithm>
-#include <map>
 #include <cmath>
 #include <chrono>
+#include <queue>
+#include <set>
 
+#ifdef _OPENMP
 #include <omp.h>
+#endif
 
 #include <Eigen/Core>
+#include <Eigen/Sparse>
 
-#include "config.h"
 #include "line_detector.h"
+#include "config.h"
 #include "geometry.h"
 #include "filter.h"
+#include "utils.h"
 #include "dump.h"
 
 
@@ -176,7 +181,7 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
     #endif
 }
 
-
+vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines);
 vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float seed_ratio, float mag_tolerance)
 {
     #if LGROUP_DEBUG_PRINTS
@@ -241,5 +246,175 @@ vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float
     clog << "Line fitting: " << std::chrono::duration_cast<std::chrono::milliseconds>(t5 - t4).count() << " [ms]" << endl;
     #endif
 
-    return lines;
+    return postprocess_lines_segments(lines);
+    //return lines;
+}
+
+
+LineSegment merge_lines(const vector<LineSegment> & lines)
+{
+    if (lines.size() == 1)
+        return lines[0];
+    int n = 2*lines.size();
+    MatrixX2f X(n, 2);
+    VectorXf W(n);
+    auto weights = length(lines).cwiseProduct(weigths(lines));
+    for (int i = 0; i < lines.size(); ++i)
+    {
+        const auto & l = lines[i]; 
+        X.row(2*i+0) = Vector2f(l.y1, l.x1);
+        X.row(2*i+1) = Vector2f(l.y2, l.x2);
+        W(2*i+0) = weights(i);
+        W(2*i+1) = weights(i);
+    }
+    return fit_line_parameters(X, W);
+}
+
+
+void dfs(int v, const SparseMatrix<float> & A, Array<bool,-1,1> & visited, ArrayXi & components, int label)
+{
+    queue<int> nodes;
+    nodes.push(v);
+    while (!nodes.empty())
+    {
+        int n = nodes.front();
+        nodes.pop();
+        visited(n) = true;
+        components(n) = label;
+        #pragma omp parallel for
+        for (Index u = n+1; u < A.cols(); ++u)
+        {
+            if (A.coeff(n,u) > 0)
+            {
+                if (!visited(u))
+                {
+                    #pragma omp critical
+                    nodes.push(u);
+                }
+            }
+        }
+    }
+}
+
+ArrayXi graph_components(const SparseMatrix<float> & A)
+{
+    Index nv = A.rows();
+    Array<bool,-1,1> visited(nv);
+    visited.setConstant(false);
+    ArrayXi components(nv);
+    for (Index v = 0; v < nv; ++v)  // vertices
+    {
+        if (!visited(v))
+        {
+            //cout << "Component " << v << endl;
+            dfs(v, A, visited, components, v);
+        }
+    }
+    return components;
+}
+
+
+vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines)
+{
+    int n_lines = lines.size();
+    //timept t0 = std::chrono::steady_clock::now();
+
+    // Get pairwise distances
+    MatrixX2f d = direction_vector(lines).rowwise().normalized();
+    VectorXf l = length(lines);
+    MatrixX2f n(n_lines, 2);
+    n << -d.col(1), d.col(0);
+
+    // cout << "d=\n" << d <<endl;
+    // cout << "n=\n" << n <<endl;
+
+    SparseMatrix<float> aff(n_lines,n_lines);
+
+    Matrix2f A, B, U, V;
+    #pragma omp parallel for private(A,B,U,V) schedule(dynamic,1)
+    for (Index i = 0; i < n_lines-1; ++i)
+    {
+        const LineSegment & li = lines[i];
+        A << li.x1, li.y1, li.x2, li.y2;
+        U.col(0) = d.row(i);
+        U.col(1) = n.row(i);
+
+        for (Index j = i+1; j < n_lines; ++j)
+        {
+            const LineSegment & lj = lines[j];
+            B << lj.x1, lj.y1, lj.x2, lj.y2;
+            V.col(0) = d.row(j);
+            V.col(1) = n.row(j);
+
+            if ( abs((U.adjoint() * V)(0,0)) < 0.95 )
+            {
+                continue;
+            }
+            
+
+            Matrix2f W;
+            if (l(i) < l(j))
+            {
+                W.noalias() = ((A.rowwise() - B.row(0)) * V) / l(i);
+            }
+            else
+            {
+                W.noalias() = ((B.rowwise() - A.row(0)) * U) / l(j);
+            }
+
+            if (W.col(1).cwiseAbs().maxCoeff() < 0.1)
+            {
+                auto x = W.col(0).array();
+                if ((x > -0.5).any() && (x < 1.5).any())
+                {
+                    // cerr << l(i) << "," << l(j) << endl;
+                    // cerr << "A=\n" << A << endl;
+                    // cerr << "B=\n" << B << endl;
+                    // cerr << "V=\n" << V << endl;
+                    // cerr << "U=\n" << U << endl;
+                    // cerr << "W=\n" << W << endl;
+                    #pragma omp critical
+                    aff.insert(i,j) = 1;
+                }
+            }
+        }
+    }
+
+    //cout << d << endl;
+
+    //cout << aff.nonZeros() << endl;
+    //cout << aff.rows() << "," << aff.cols() << endl;
+
+    //timept t1 = std::chrono::steady_clock::now();
+
+    // Get components and unique labels
+    ArrayXi components = graph_components(aff);
+    std::set<int> labels(components.begin(), components.end());
+    //timept t2 = std::chrono::steady_clock::now();
+
+    vector<LineSegment> res;
+    // For each unique label
+    for (auto lbl = labels.begin(); lbl != labels.end(); ++lbl)
+    {
+        // Get indices of lines with the same label
+        ArrayXi idx = index_array(components == *lbl);
+        //cerr << "set: " << *lbl << ", " << idx.size() << "," << (components == *lbl).count() << endl;
+        //cerr << idx << endl;
+        // Make copy to temporary vector
+        vector<LineSegment> lbl_lines(idx.size());
+        for (size_t j = 0; j < lbl_lines.size(); ++j)
+            // copy idx[j]-th line to j-th position
+            lbl_lines[j] = lines[idx(j)];
+        // So now lbl_lines is a set of lines to be merged
+        LineSegment merged = merge_lines(lbl_lines);
+        res.push_back(merged);
+    }
+    //timept t3 = std::chrono::steady_clock::now();
+
+    // clog << "distance: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << " [ms]" << endl;
+    // clog << "components: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " [ms]" << endl;
+    // clog << "merging: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << " [ms]" << endl;
+    // cout << "Original lines: " << lines.size() << ". Merged:" << res.size() << endl;
+
+    return res;
 }
