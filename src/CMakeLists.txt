@@ -8,7 +8,7 @@ find_package(OpenCV REQUIRED)
 
 set(CMAKE_BUILD_TYPE RELEASE)
 
-add_compile_options(-ffast-math -msse2 -msse3 -mssse3 -msse4 -msse4.1 -mavx -mfma)
+add_compile_options(-ffast-math -msse2 -msse3 -mssse3 -msse4 -msse4.1 -mavx -mfma -O3)
 
 add_library(rectify SHARED
     filter.cpp geometry.cpp image.cpp liblgroup.cpp
@@ -18,9 +18,11 @@ add_library(rectify SHARED
 set_target_properties(rectify PROPERTIES VERSION ${PROJECT_VERSION})
 #set_target_properties(rectify PROPERTIES CXX_VISIBILITY_PRESET hidden)
 #set_target_properties(rectify PROPERTIES PUBLIC_HEADER liblgroup.h)
+target_compile_definitions(rectify PUBLIC EIGEN_NO_DEBUG EIGEN_FAST_MATH)
 target_include_directories(rectify PUBLIC ${PROJECT_SOURCE_DIR}/include/eigen)
-include(GenerateExportHeader)
-generate_export_header(rectify)
+
+#include(GenerateExportHeader)
+#generate_export_header(rectify)
 
 target_link_directories(rectify PUBLIC ${PROJECT_SOURCE_DIR}/bin)
 

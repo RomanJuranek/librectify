@@ -27,7 +27,7 @@ using InputPixelType = float;
 
 // Minimum weight (cos of inclination to the VP) for a line to be considered
 // inlier (after RANSAC)
-#define INLIER_TOLERANCE 5e-4
+#define INLIER_TOLERANCE 3e-4
 
 // RANSAC
 // Number of iterations of RANSAC
@@ -52,16 +52,16 @@ using InputPixelType = float;
 #define SEED_DIST 2
 
 // The ration of seed points to consider for tracing
-#define SEED_RATIO 0.8
+#define SEED_RATIO 0.98
 
 // Magnitude tolerance during tracing
 #define TRACE_TOLERANCE 0.3
 
 // Mean reprojection error of pixels on a line
-#define LINE_MAX_ERR 1.0f
+#define LINE_MAX_ERR 2.0f
 
 // Mean weight of pixels on a line
-#define LINE_MIN_WEIGHT 0.03f
+#define LINE_MIN_WEIGHT 0.02f
 
 // Minimal line length
 #define LINE_MIN_LENGTH 10.f
