@@ -246,8 +246,7 @@ vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float
     clog << "Line fitting: " << std::chrono::duration_cast<std::chrono::milliseconds>(t5 - t4).count() << " [ms]" << endl;
     #endif
 
-    return postprocess_lines_segments(lines);
-    //return lines;
+    return lines;
 }
 
 
@@ -345,24 +344,21 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
             B << lj.x1, lj.y1, lj.x2, lj.y2;
             V.col(0) = d.row(j);
             V.col(1) = n.row(j);
-
-            if ( abs((U.adjoint() * V)(0,0)) < 0.95 )
+            if ( abs((U.adjoint() * V)(0,0)) < 0.95 )  // cos(max_angular_difference)
             {
                 continue;
             }
-            
-
             Matrix2f W;
             if (l(i) < l(j))
             {
-                W.noalias() = ((A.rowwise() - B.row(0)) * V) / l(i);
+                W.noalias() = ((A.rowwise() - B.row(0)) * V) / l(j);
             }
             else
             {
-                W.noalias() = ((B.rowwise() - A.row(0)) * U) / l(j);
+                W.noalias() = ((B.rowwise() - A.row(0)) * U) / l(i);
             }
 
-            if (W.col(1).cwiseAbs().maxCoeff() < 0.1)
+            if (W.col(1).cwiseAbs().maxCoeff() < 0.05)
             {
                 auto x = W.col(0).array();
                 if ((x > -0.5).any() && (x < 1.5).any())

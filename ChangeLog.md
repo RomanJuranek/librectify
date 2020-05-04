@@ -1,3 +1,6 @@
+### Whats new in **v0.9.5**
+* Experimental support for line postprocessing (parameter `refine` in `detect_line_groups`)
+
 ### Whats new in **v0.9.4**
 * `set_num_threads` sets internal number of threads and does not interfere with global OpenMP settings.
 * `get_num_threads` get number of threads used by the library
