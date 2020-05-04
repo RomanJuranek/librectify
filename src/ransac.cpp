@@ -108,7 +108,8 @@ VectorXf RANSAC(LinePencilModel & model, vector<int> indices, int max_iter, floa
     float best_fit = 0;
     VectorXf best_h;
     #ifdef _OPENMP
-    #pragma omp parallel for shared(best_h, best_fit)
+    int _t = get_num_threads();
+    #pragma omp parallel for shared(best_h, best_fit), num_threads(_t)
     #endif
     for (int iter=0; iter < max_iter; ++iter)
     {
@@ -120,7 +121,7 @@ VectorXf RANSAC(LinePencilModel & model, vector<int> indices, int max_iter, floa
         // cerr << "h=" << h << ", fit=" << fit << endl;
         // abort();
         #ifdef _OPENMP
-        #pragma omp critical
+        #pragma omp critical (RANSAC)
         #endif
         if (fit > best_fit)
         {

@@ -136,7 +136,8 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
     #endif
 
     #ifdef _OPENMP
-    #pragma omp parallel for
+    int _t = get_num_threads();
+    #pragma omp parallel for num_threads(_t)
     #endif
     for (int i = 0; i < n_bins; i++)
     {
@@ -159,7 +160,7 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
     #endif
 
     #ifdef _OPENMP
-    int _t = get_num_threads();
+    _t = get_num_threads();
     #pragma omp parallel for num_threads(_t)
     #endif
     for (int i = 0; i < n_bins; i++)
@@ -283,14 +284,19 @@ void dfs(int v, const SparseMatrix<float> & A, Array<bool,-1,1> & visited, Array
         nodes.pop();
         visited(n) = true;
         components(n) = label;
-        #pragma omp parallel for
+        #ifdef _OPENMP
+        int _t = get_num_threads();
+        #pragma omp parallel for num_threads(_t)
+        #endif
         for (Index u = n+1; u < A.cols(); ++u)
         {
             if (A.coeff(n,u) > 0)
             {
                 if (!visited(u))
                 {
+                    #ifdef _OPENMP
                     #pragma omp critical
+                    #endif
                     nodes.push(u);
                 }
             }
@@ -333,7 +339,10 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
     SparseMatrix<float> aff(n_lines,n_lines);
 
     Matrix2f A, B, U, V;
-    #pragma omp parallel for private(A,B,U,V) schedule(dynamic,1)
+    #ifdef _OPENMP
+    int _t = get_num_threads();
+    #pragma omp parallel for private(A,B,U,V) schedule(dynamic,1), num_threads(_t)
+    #endif
     for (Index i = 0; i < n_lines-1; ++i)
     {
         const LineSegment & li = lines[i];
@@ -372,7 +381,9 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
                     // cerr << "V=\n" << V << endl;
                     // cerr << "U=\n" << U << endl;
                     // cerr << "W=\n" << W << endl;
+                    #ifdef _OPENMP
                     #pragma omp critical
+                    #endif
                     aff.insert(i,j) = 1;
                 }
             }
