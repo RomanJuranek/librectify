@@ -1,6 +1,4 @@
-# `librectify` v0.9.4
-_Apr 20, 2020_
-
+# `librectify`
 &copy; 2020, Roman Juranek <ijuranek@fit.vutbr.cz>
 
 Minimalistic library for image perspective correction. The library prvides API for automated identification of converging line groups and image transform computation from automatic identification of two orthogonal vanishing points. The library does not warp the image, this is in the hands of the user.
@@ -14,4 +12,4 @@ Example app uses OpenCV for image IO and warping.
 
 ---
 
-[Change log](ChangeLog) | [TODO](TODO)
+[Change log](ChangeLog.md) | [TODO](TODO.md)

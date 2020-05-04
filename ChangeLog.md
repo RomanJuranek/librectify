@@ -1,5 +1,7 @@
 ### Whats new in **v0.9.5**
 * Experimental support for line postprocessing (parameter `refine` in `detect_line_groups`)
+* Fixed threading issues (some parallel regions did not use internal number of threads)
+* API is enclosed in namespace `librectify`
 
 ### Whats new in **v0.9.4**
 * `set_num_threads` sets internal number of threads and does not interfere with global OpenMP settings.
