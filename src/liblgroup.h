@@ -117,6 +117,7 @@ using InputPixelType = float;  // Do not change this!!!
 extern "C" DLL_PUBLIC LineSegment * find_line_segment_groups(
     InputPixelType * buffer, int width, int height, int stride,
     float min_length,
+    bool refine,
     int * n_lines);
 
 
