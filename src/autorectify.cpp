@@ -100,6 +100,8 @@ void draw_lines(II first, II last, Mat & image)
             w = 3;
         }
         line(image, cv::Point(l.x1, l.y1), cv::Point(l.x2, l.y2), clr, w);
+        circle(image, cv::Point(l.x1, l.y1), 7, clr, -1);
+        circle(image, cv::Point(l.x2, l.y2), 7, clr, -1);
         ++first;
     }
 }
@@ -119,7 +121,7 @@ LineSegment * detect_line_groups(const Mat & image, int * n_lines)
     int stride = w;
     int min_length = float(max(h,w)) / 100.0f;
 
-    LineSegment * lines = find_line_segment_groups(buffer, w, h, stride, min_length, n_lines);
+    LineSegment * lines = find_line_segment_groups(buffer, w, h, stride, min_length, true, n_lines);
 
     // Scale lines back to the original image
     for (size_t i = 0; i < *n_lines; ++i)
