@@ -257,7 +257,8 @@ LineSegment merge_lines(const vector<LineSegment> & lines)
     int n = 2*lines.size();
     MatrixX2f X(n, 2);
     VectorXf W(n);
-    auto weights = length(lines).cwiseProduct(weigths(lines));
+    VectorXf l = length(lines);
+    auto weights = l.cwiseProduct(weigths(lines));
     for (int i = 0; i < lines.size(); ++i)
     {
         const auto & l = lines[i]; 
@@ -266,7 +267,9 @@ LineSegment merge_lines(const vector<LineSegment> & lines)
         W(2*i+0) = weights(i);
         W(2*i+1) = weights(i);
     }
-    return fit_line_parameters(X, W);
+    LineSegment merged = fit_line_parameters(X, W);
+    merged.weight = weights.sum() / l.sum();
+    return merged;
 }
 
 
@@ -358,10 +361,10 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
                 W.noalias() = ((B.rowwise() - A.row(0)) * U) / l(i);
             }
 
-            if (W.col(1).cwiseAbs().maxCoeff() < 0.05)
+            if (W.col(1).cwiseAbs().maxCoeff() < 0.1)
             {
                 auto x = W.col(0).array();
-                if ((x > -0.5).any() && (x < 1.5).any())
+                if ((x > -0.7).any() && (x < 1.7).any())
                 {
                     // cerr << l(i) << "," << l(j) << endl;
                     // cerr << "A=\n" << A << endl;
