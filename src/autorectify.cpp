@@ -24,6 +24,7 @@ Image Processing Algorithms.
 
 using namespace std;
 using namespace cv;
+using namespace librectify;
 
 
 // Write range of lines to output

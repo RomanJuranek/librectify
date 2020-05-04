@@ -19,6 +19,8 @@
 using namespace std;
 using namespace Eigen;
 
+namespace librectify {
+
 
 static std::random_device rd;
 static std::mt19937 rng(rd());
@@ -361,5 +363,7 @@ vector<LineSegment> group_lines(vector<LineSegment> & lines)
     assert(res.size() == lines.size());
 
     return res;
-
 }
+
+
+} // namespace

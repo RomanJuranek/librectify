@@ -18,7 +18,7 @@ add_library(rectify SHARED
 set_target_properties(rectify PROPERTIES VERSION ${PROJECT_VERSION})
 #set_target_properties(rectify PROPERTIES CXX_VISIBILITY_PRESET hidden)
 #set_target_properties(rectify PROPERTIES PUBLIC_HEADER liblgroup.h)
-target_compile_definitions(rectify PUBLIC EIGEN_NO_DEBUG EIGEN_FAST_MATH)
+target_compile_definitions(rectify PUBLIC EIGEN_NO_DEBUG EIGEN_FAST_MATH EIGEN_DONT_PARALLELIZE)
 target_include_directories(rectify PUBLIC ${PROJECT_SOURCE_DIR}/include/eigen)
 
 #include(GenerateExportHeader)

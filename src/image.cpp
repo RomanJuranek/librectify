@@ -5,6 +5,7 @@
 
 using namespace Eigen;
 
+namespace librectify {
 
 Image image_from_buffer(InputPixelType * buffer, int width, int height, int stride)
 {
@@ -16,3 +17,5 @@ Image image_from_buffer(InputPixelType * buffer, int width, int height, int stri
     }
     return MapType(buffer,height,width,Eigen::Stride<-1,1>(stride,1));
 }
+
+} // namespace

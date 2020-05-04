@@ -34,8 +34,9 @@ Both versions are semantically equivalent.
 #endif
 
 
-// namespace lgroup
-// {
+
+namespace librectify {
+
 
 /*
 Structure which holds a single line segment and its properties.
@@ -221,4 +222,4 @@ extern "C" DLL_PUBLIC void assign_to_group(
     float angular_tolarance);
 
 
-// } // namespace lgroup
+} // namespace

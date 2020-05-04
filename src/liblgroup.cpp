@@ -19,6 +19,9 @@ using namespace Eigen;
 using namespace std;
 
 
+namespace librectify {
+
+
 static vector<LineSegment> _find_line_segment_on_buffer(InputPixelType * buffer, int width, int height, int stride)
 {
     Image im = image_from_buffer(buffer, width, height, stride);
@@ -242,3 +245,6 @@ void assign_to_group(
     }
 
 }
+
+
+} // namespace

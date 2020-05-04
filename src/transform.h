@@ -7,6 +7,9 @@
 #include "liblgroup.h"
 
 
+namespace librectify {
+
+
 template <typename Derived>
 Eigen::ArrayXi index_array(Derived x)
 {
@@ -74,3 +77,6 @@ Eigen::Matrix<float,4,3> compute_image_transform(
     int width, int height,
     const Eigen::Vector3f & horizontal_vp,
     const Eigen::Vector3f & vertical_vp);
+
+
+} // namespace

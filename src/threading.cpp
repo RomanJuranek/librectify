@@ -4,6 +4,9 @@
 #include <omp.h>
 
 
+namespace librectify {
+
+
 #ifdef _OPENMP
 static int num_threads = omp_get_max_threads();
 #endif
@@ -28,3 +31,5 @@ int get_num_threads()
     #endif
     return _t;
 }
+
+} // namespace

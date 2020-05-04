@@ -3,6 +3,8 @@
 #include "liblgroup.h"
 
 using namespace std;
+using namespace librectify;
+
 
 ostream & operator<<(ostream & out, const Point & p)
 {

@@ -22,6 +22,9 @@ using namespace Eigen;
 using namespace std;
 
 
+namespace librectify {
+
+
 void maximum_filter(const Image & image, Image & out, int size)
 {
     int n = 2*size+1;
@@ -171,18 +174,4 @@ vector<PeakPoint> find_peaks(const Image & image, int size, float min_value)
     return res;
 }
 
-/*
-#include <Eigen/CXX11/Tensor>
-
- Eigen::Tensor<float,2> test()
-{
-    Eigen::Tensor<float,2> im(2048,2048);
-    im.setRandom();
-    Eigen::Tensor<float,2> X(5,5);
-    X.setRandom();
-    Eigen::Tensor<float,2> out(2048,2048);
-    Eigen::array<ptrdiff_t,2> dims({0,1});
-    out = im.convolve(X, dims);
-    return out;
 }
-*/

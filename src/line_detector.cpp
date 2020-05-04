@@ -34,6 +34,8 @@ TACR project TH04010394, Progressive Image Processing Algorithms.
 using namespace Eigen;
 using namespace std;
 
+namespace librectify {
+
 
 void image_gradients(const Image & image, Image & dx, Image & dy, Image & mag)
 {
@@ -427,4 +429,6 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
     // cout << "Original lines: " << lines.size() << ". Merged:" << res.size() << endl;
 
     return res;
+}
+
 }

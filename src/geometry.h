@@ -5,6 +5,8 @@
 #include "liblgroup.h"
 
 
+namespace librectify {
+
 LineSegment fit_line_parameters(const Eigen::MatrixX2f & X, const Eigen::VectorXf & w);
 
 Eigen::Vector3f homogeneous(const LineSegment & l);
@@ -24,3 +26,5 @@ Eigen::VectorXf weigths(const std::vector<LineSegment> & lines);
 Eigen::ArrayXi group_id(const std::vector<LineSegment> & lines);
 
 Eigen::VectorXf inclination(const Eigen::MatrixX2f & a, const Eigen::MatrixX2f & d, const Eigen::RowVector3f & p);
+
+}

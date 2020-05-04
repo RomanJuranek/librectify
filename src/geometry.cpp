@@ -13,6 +13,9 @@ using namespace std;
 using namespace Eigen;
 
 
+namespace librectify {
+
+
 LineSegment fit_line_parameters(const Eigen::MatrixX2f & X, const Eigen::VectorXf & w)
 {
     VectorXf weights = w / w.sum();  // Weights sum to 1
@@ -204,3 +207,5 @@ VectorXf inclination(const MatrixX2f & a, const MatrixX2f & d, const RowVector3f
     //cerr << ((v * d.transpose()).diagonal()).cwiseAbs().eval() << endl;
     return ((v * d.transpose()).diagonal()).cwiseAbs().eval();
 }
+
+} // namespace

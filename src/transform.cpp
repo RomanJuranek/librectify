@@ -14,6 +14,9 @@ using namespace std;
 using namespace Eigen;
 
 
+namespace librectify {
+
+
 Vector3f normalize_point(const Vector3f & p)
 {
     if (abs(p.z()) < EPS)
@@ -223,3 +226,4 @@ VanishingPoint select_horizontal_point(
     return VanishingPoint(h); // orthogonal to vertical point
 }
 
+} // namespace

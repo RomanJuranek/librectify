@@ -8,6 +8,7 @@
 
 #include "image.h"
 
+namespace librectify {
 
 typedef std::array<Eigen::Index,2> Location;
 
@@ -33,3 +34,5 @@ std::vector<PeakPoint> find_peaks(const Image & image, int size, float min_value
 void flood_init_mask(Mask & mask);
 
 int flood(const Image & image, const Location seed, float tolerance, Mask & mask, Eigen::MatrixX2i & px_loc, Eigen::VectorXf & px_val);
+
+} // namespace
