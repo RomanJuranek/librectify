@@ -52,13 +52,13 @@ using InputPixelType = float;
 #define SEED_DIST 2
 
 // The ration of seed points to consider for tracing
-#define SEED_RATIO 0.98
+#define SEED_RATIO 0.9
 
 // Magnitude tolerance during tracing
 #define TRACE_TOLERANCE 0.3
 
 // Mean reprojection error of pixels on a line
-#define LINE_MAX_ERR 2.0f
+#define LINE_MAX_ERR 1.5f
 
 // Mean weight of pixels on a line
 #define LINE_MIN_WEIGHT 0.02f
