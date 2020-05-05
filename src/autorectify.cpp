@@ -220,7 +220,7 @@ struct Options
     string filename {""};
     string suffix {"warp"};
     bool refine_lines {false};
-    int num_threads {1};
+    int num_threads {-1};
     int max_image_size {1200};
 };
 
@@ -253,7 +253,7 @@ Options process_arguments(II first, II last)
         {
             ++first;
             opt.num_threads = stoi(*first);
-            opt.num_threads = std::min(opt.num_threads, 8);
+            opt.num_threads = std::max(std::min(opt.num_threads, 8), 0);
         }
         else if (*first == "-m")
         {
@@ -298,16 +298,22 @@ int main(int argc, char ** argv)
     ///////////////////////////////////////////////////////////////////////////
 
     // Set number of threads for parallelization
-    if (opts.num_threads > 1)
+    if (opts.num_threads > -1)
     {
         set_num_threads(opts.num_threads);
     }
 
     // Detect lines in image
+    
+    std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     int n_lines = 0;
     LineSegment * lines = detect_line_groups(image_8uc, opts.max_image_size, opts.refine_lines, &n_lines);
     // Now we have n_lines segments lines[0] .. lines[n_lines-1]
     // We can modify them, e.g. add user defined lines (remember to assign them to the correct group)
+    std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
+    clog << "Detection: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << " [ms]" << endl;
+    
+
 
     // Setup parameters for rectification
     RectificationConfig cfg;
