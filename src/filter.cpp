@@ -149,7 +149,7 @@ vector<PeakPoint> find_peaks(const Image & image, int size, float min_value)
 {
     Image max_im;
     maximum_filter(image, max_im, size);
-    auto peaks = ((max_im == image) && (image > min_value));
+    auto peaks = ((max_im == image) && (image > min_value)).eval();
 
     vector<PeakPoint> res;
     res.reserve(8*1024);
