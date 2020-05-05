@@ -93,6 +93,10 @@ interfere with global OpenMP settings.
 */
 extern "C" void DLL_PUBLIC set_num_threads(int t);
 
+
+/*
+Get the number of threads
+*/
 extern "C" int DLL_PUBLIC get_num_threads();
 
 
