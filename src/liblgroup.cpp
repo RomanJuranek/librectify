@@ -35,7 +35,7 @@ static void _filter_lines(InputIterator first, InputIterator last, OutputIterato
 {
     min_length = max(min_length, LINE_MIN_LENGTH);
     vector<LineSegment> filtered;
-    copy_if(first, last, dst, [&](const LineSegment&x) { return length(x)>min_length && x.err < LINE_MAX_ERR && x.weight>LINE_MIN_WEIGHT;} );
+    copy_if(first, last, dst, [&](const LineSegment&x) { return length(x)>min_length && x.err < LINE_MAX_ERR;} );
 }
 
 
@@ -48,6 +48,7 @@ LineSegment * find_line_segment_groups(
 {
     // Init image from buffer
     auto lines = _find_line_segment_on_buffer(buffer, width, height, stride);
+
     if (refine)
     {
         lines = postprocess_lines_segments(lines);
@@ -56,7 +57,7 @@ LineSegment * find_line_segment_groups(
     vector<LineSegment> filtered;
     filtered.reserve(lines.size());
     _filter_lines(lines.begin(), lines.end(), back_inserter(filtered), min_length);
-    
+
     vector<LineSegment> groupped = group_lines(filtered);
     
     // Construct resulting array and copy data
