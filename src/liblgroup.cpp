@@ -248,4 +248,10 @@ void assign_to_group(
 }
 
 
+void release_line_segments(LineSegment * lines)
+{
+    delete [] lines;
+}
+
+
 } // namespace

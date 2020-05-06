@@ -126,6 +126,13 @@ extern "C" DLL_PUBLIC LineSegment * find_line_segment_groups(
     int * n_lines);
 
 
+
+/*
+Free memory - it just calls delete on the parameter
+*/
+extern "C" DLL_PUBLIC void release_line_segments(LineSegment * lines);
+
+
 enum RectificationStrategy
 {
     ROTATE_H,
