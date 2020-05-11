@@ -8,6 +8,7 @@
 #include "librectify.h"
 #include "geometry.h"
 #include "transform.h"
+#include "utils.h"
 
 
 using namespace std;

@@ -13,6 +13,7 @@
 #include "ransac.h"
 #include "geometry.h"
 #include "transform.h"
+#include "utils.h"
 
 
 using namespace Eigen;

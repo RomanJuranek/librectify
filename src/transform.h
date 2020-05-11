@@ -10,23 +10,6 @@
 namespace librectify {
 
 
-template <typename Derived>
-Eigen::ArrayXi index_array(Derived x)
-{
-    Eigen::Index n = x.count();
-    Eigen::ArrayXi idx(n);
-    int k = 0;
-    for (int i = 0; i < x.size(); ++i)
-    {
-        if (x(i) != 0)
-        {
-            idx(k++) = i;
-        }
-    }
-    return idx;
-}
-
-
 struct VanishingPoint
 {
     Eigen::Vector3f coords; // in image space
