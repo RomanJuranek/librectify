@@ -11,7 +11,7 @@ set(CMAKE_BUILD_TYPE RELEASE)
 add_compile_options(-ffast-math -msse2 -msse3 -mssse3 -msse4 -msse4.1 -mavx -mfma -O3)
 
 add_library(rectify SHARED
-    filter.cpp geometry.cpp image.cpp liblgroup.cpp
+    filter.cpp geometry.cpp image.cpp interface.cpp
     line_detector.cpp ransac.cpp threading.cpp transform.cpp
 )
 

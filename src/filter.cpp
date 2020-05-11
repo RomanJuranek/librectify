@@ -10,10 +10,10 @@
 
 #include <Eigen/Core>
 
+#include "librectify.h"
 #include "dump.h"
 #include "image.h"
 #include "filter.h"
-#include "liblgroup.h"
 #include "threading.h"
 
 #include <iostream>

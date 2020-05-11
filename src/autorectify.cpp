@@ -17,7 +17,7 @@ Image Processing Algorithms.
 #include <fstream>
 #include <iterator>
 
-#include "liblgroup.h"
+#include "librectify.h"
 
 #include <opencv2/opencv.hpp>
 

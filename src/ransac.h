@@ -4,7 +4,7 @@
 #include <list>
 #include <vector>
 
-#include "liblgroup.h"
+#include "librectify.h"
 
 namespace librectify {
 

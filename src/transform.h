@@ -4,7 +4,7 @@
 #include <Eigen/Core>
 
 #include "config.h"
-#include "liblgroup.h"
+#include "librectify.h"
 
 
 namespace librectify {

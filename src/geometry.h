@@ -2,7 +2,7 @@
 
 #include <vector>
 #include <Eigen/Core>
-#include "liblgroup.h"
+#include "librectify.h"
 
 
 namespace librectify {

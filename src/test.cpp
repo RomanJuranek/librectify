@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "liblgroup.h"
+#include "librectify.h"
 
 using namespace std;
 using namespace librectify;

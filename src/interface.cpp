@@ -7,7 +7,7 @@
 #include <Eigen/Dense>
 
 #include "config.h"
-#include "liblgroup.h"
+#include "librectify.h"
 #include "image.h"
 #include "line_detector.h"
 #include "ransac.h"

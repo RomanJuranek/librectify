@@ -1,4 +1,5 @@
 #include <Eigen/Core>
+
 #include "config.h"
 #include "image.h"
 

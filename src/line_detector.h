@@ -3,7 +3,7 @@
 #include <vector>
 
 #include "image.h"
-#include "liblgroup.h"
+#include "librectify.h"
 
 namespace librectify {
 

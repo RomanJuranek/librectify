@@ -1,4 +1,4 @@
-#include "liblgroup.h"
+#include "librectify.h"
 #include "threading.h"
 
 #include <algorithm>

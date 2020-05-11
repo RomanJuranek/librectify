@@ -12,7 +12,7 @@
 #include <Eigen/Geometry>
 
 #include "config.h"
-#include "liblgroup.h"
+#include "librectify.h"
 #include "geometry.h"
 #include "threading.h"
 
