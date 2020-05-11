@@ -253,7 +253,6 @@ Options process_arguments(II first, II last)
         {
             ++first;
             opt.num_threads = stoi(*first);
-            opt.num_threads = std::max(std::min(opt.num_threads, 8), 0);
         }
         else if (*first == "-m")
         {
@@ -298,10 +297,7 @@ int main(int argc, char ** argv)
     ///////////////////////////////////////////////////////////////////////////
 
     // Set number of threads for parallelization
-    if (opts.num_threads > -1)
-    {
-        set_num_threads(opts.num_threads);
-    }
+    set_num_threads(opts.num_threads);
 
     // Detect lines in image
     

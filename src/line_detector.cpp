@@ -29,6 +29,7 @@ TACR project TH04010394, Progressive Image Processing Algorithms.
 #include "filter.h"
 #include "utils.h"
 #include "dump.h"
+#include "threading.h"
 
 
 using namespace Eigen;
@@ -68,8 +69,7 @@ vector<LineSegment> fit_lines_to_components(list<Component> & components)
     res.reserve(components.size());
     list<Component>::iterator c;
     #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel private(c), num_threads(_t)
+    #pragma omp parallel private(c), num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (c=components.begin(); c != components.end(); ++c)
     {
@@ -138,8 +138,7 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
     #endif
 
     #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for num_threads(_t)
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (int i = 0; i < n_bins; i++)
     {
@@ -162,8 +161,7 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
     #endif
 
     #ifdef _OPENMP
-    _t = get_num_threads();
-    #pragma omp parallel for num_threads(_t)
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (int i = 0; i < n_bins; i++)
     {
@@ -213,8 +211,7 @@ vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float
     vector<PeakPoint> seed = find_peaks(mag, seed_dist, min_seed_value);
     vector<int> seed_bin(seed.size());
     #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for num_threads(_t)
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (int i = 0; i < int(seed.size()); ++i)
     {
@@ -287,8 +284,7 @@ void dfs(int v, const SparseMatrix<float> & A, Array<bool,-1,1> & visited, Array
         visited(n) = true;
         components(n) = label;
         #ifdef _OPENMP
-        int _t = get_num_threads();
-        #pragma omp parallel for num_threads(_t)
+        #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
         #endif
         for (Index u = n+1; u < A.cols(); ++u)
         {
@@ -344,8 +340,7 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
 
     Matrix2f A, B, U, V;
     #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for private(A,B,U,V) schedule(dynamic,1), num_threads(_t)
+    #pragma omp parallel for private(A,B,U,V) schedule(dynamic,1), num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (Index i = 0; i < n_lines-1; ++i)
     {

@@ -14,6 +14,7 @@
 #include "image.h"
 #include "filter.h"
 #include "liblgroup.h"
+#include "threading.h"
 
 #include <iostream>
 
@@ -31,8 +32,7 @@ void maximum_filter(const Image & image, Image & out, int size)
     out.resizeLike(image);
     out.setZero();
     #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for num_threads(_t)
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (int i = 0; i < image.rows()-n+1; ++i)
         for (int j = 0; j < image.cols()-n+1; ++j)
@@ -46,8 +46,7 @@ void binary_dilate(const Mask & image, Mask & out)
     out.resizeLike(image);
     out.setZero();
     #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for num_threads(_t)
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (int i = 0; i < image.rows()-n+1; ++i)
         for (int j = 0; j < image.cols()-n+1; ++j)
@@ -80,8 +79,7 @@ void conv_2d(const Image & image, const Image & kernel, Image & out)
     out.setZero();
 
     #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for num_threads(_t)
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (int i = 0; i < image.rows()-nr+1; ++i)
         for (int j = 0; j < image.cols()-nc+1; ++j)
@@ -155,8 +153,7 @@ vector<PeakPoint> find_peaks(const Image & image, int size, float min_value)
     res.reserve(8*1024);
 
     #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for num_threads(_t)
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (int i = 0; i < peaks.rows(); ++i)
         for (int j = 0; j < peaks.cols(); ++j)

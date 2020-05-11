@@ -1,6 +1,8 @@
 ### Whats new in **v0.9.5**
 * Experimental support for line postprocessing (parameter `refine` in `find_line_segment_groups`)
-* Fixed threading issues (some parallel regions did not use internal number of threads)
+* Fixed threading issues
+  * Some parallel regions did not use internal number of threads
+  * By default, omp setting is used
 * API is enclosed in namespace `librectify`
 * `release_line_segments` for deallocation of memory retuned by `find_line_segment_groups`
 

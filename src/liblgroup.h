@@ -88,8 +88,9 @@ struct ImageTransform
 
 /*
 Set number of threads to be used by the library.
-The function sets internal state and does not
-interfere with global OpenMP settings.
+By default, the value set by OpenMP library is used. This behaviour
+can be restored by set_num_threads(0). When negative value is set,
+threading is disabled.
 */
 extern "C" void DLL_PUBLIC set_num_threads(int t);
 

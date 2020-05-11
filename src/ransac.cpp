@@ -14,6 +14,7 @@
 #include "config.h"
 #include "liblgroup.h"
 #include "geometry.h"
+#include "threading.h"
 
 
 using namespace std;
@@ -110,8 +111,7 @@ VectorXf RANSAC(LinePencilModel & model, vector<int> indices, int max_iter, floa
     float best_fit = 0;
     VectorXf best_h;
     #ifdef _OPENMP
-    int _t = get_num_threads();
-    #pragma omp parallel for shared(best_h, best_fit), num_threads(_t)
+    #pragma omp parallel for shared(best_h, best_fit), num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (int iter=0; iter < max_iter; ++iter)
     {
