@@ -254,21 +254,21 @@ LineSegment merge_lines(const vector<LineSegment> & lines)
 {
     if (lines.size() == 1)
         return lines[0];
-    int n = 2*lines.size();
+    size_t n = 2*lines.size();
     MatrixX2f X(n, 2);
     VectorXf W(n);
     VectorXf l = length(lines);
-    auto weights = l.cwiseProduct(weigths(lines));
-    for (int i = 0; i < lines.size(); ++i)
+    auto wts = l.cwiseProduct(weigths(lines)).eval();
+    for (size_t i = 0; i < lines.size(); ++i)
     {
-        const auto & l = lines[i]; 
-        X.row(2*i+0) = Vector2f(l.y1, l.x1);
-        X.row(2*i+1) = Vector2f(l.y2, l.x2);
-        W(2*i+0) = weights(i);
-        W(2*i+1) = weights(i);
+        const auto & ln = lines[i]; 
+        X.row(2*i+0) = Vector2f(ln.y1, ln.x1);
+        X.row(2*i+1) = Vector2f(ln.y2, ln.x2);
+        W(2*i+0) = wts(i);
+        W(2*i+1) = wts(i);
     }
     LineSegment merged = fit_line_parameters(X, W);
-    merged.weight = weights.sum() / l.sum();
+    merged.weight = wts.sum() / l.sum();
     return merged;
 }
 
@@ -296,7 +296,7 @@ void dfs(int v, const SparseMatrix<float> & A, Array<bool,-1,1> & visited, Array
                     #pragma omp critical
                     #endif
                     {
-                        nodes.push(u);
+                        nodes.push(int(u));
                     }
                 }
             }
@@ -315,7 +315,7 @@ ArrayXi graph_components(const SparseMatrix<float> & A)
         if (!visited(v))
         {
             //cout << "Component " << v << endl;
-            dfs(v, A, visited, components, v);
+            dfs(int(v), A, visited, components, int(v));
         }
     }
     return components;
@@ -324,7 +324,7 @@ ArrayXi graph_components(const SparseMatrix<float> & A)
 
 vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines)
 {
-    int n_lines = lines.size();
+    size_t n_lines = lines.size();
     //timept t0 = std::chrono::steady_clock::now();
 
     // Get pairwise distances
@@ -374,9 +374,9 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
                 auto x = W.col(0).array();
                 if ((x > -0.2).any() && (x < 1.2).any())
                 {
-                    // cerr << l(i) << "," << l(j) << endl;
-                    // cerr << "A=\n" << A << endl;
-                    // cerr << "B=\n" << B << endl;
+                    //cerr << l(i) << "," << l(j) << endl;
+                    //cerr << "A=\n" << A << endl;
+                    //cerr << "B=\n" << B << endl;
                     // cerr << "V=\n" << V << endl;
                     // cerr << "U=\n" << U << endl;
                     // cerr << "W=\n" << W << endl;
@@ -398,22 +398,27 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
 
     // Get components and unique labels
     ArrayXi components = graph_components(aff);
+    //cerr << components << endl;
     std::set<int> labels(components.begin(), components.end());
     //timept t2 = std::chrono::steady_clock::now();
-
+    //cerr << components.size() << "," << lines.size() << endl;
     vector<LineSegment> res;
+    res.reserve(labels.size());
     // For each unique label
-    for (auto lbl = labels.begin(); lbl != labels.end(); ++lbl)
+    for (auto lbl : labels)
     {
         // Get indices of lines with the same label
-        ArrayXi idx = index_array(components == *lbl);
+        //ArrayXi idx = index_array(components == *lbl);
         //cerr << "set: " << *lbl << ", " << idx.size() << "," << (components == *lbl).count() << endl;
-        //cerr << idx << endl;
+        //cerr << "l: " << lbl << endl;
         // Make copy to temporary vector
-        vector<LineSegment> lbl_lines(idx.size());
-        for (size_t j = 0; j < lbl_lines.size(); ++j)
+        vector<LineSegment> lbl_lines;
+        lbl_lines.reserve(4);
+        for (size_t j = 0; j < components.size(); ++j)
             // copy idx[j]-th line to j-th position
-            lbl_lines[j] = lines[idx(j)];
+            //lbl_lines[j] = lines[idx(j)];
+            if (components(j) == lbl)
+                lbl_lines.push_back(lines[j]);
         // So now lbl_lines is a set of lines to be merged
         LineSegment merged = merge_lines(lbl_lines);
         res.push_back(merged);
@@ -424,7 +429,7 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
     // clog << "components: " << std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count() << " [ms]" << endl;
     // clog << "merging: " << std::chrono::duration_cast<std::chrono::milliseconds>(t3 - t2).count() << " [ms]" << endl;
     // cout << "Original lines: " << lines.size() << ". Merged:" << res.size() << endl;
-
+    // cerr << res.size() << endl;
     return res;
 }
 
