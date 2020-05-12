@@ -150,12 +150,12 @@ struct RectificationConfig
     // Search space for vertical vanishing point (degrees)
     float vertical_vp_angular_tolerance {40};
     // Minimal distance of vertical VP from from image center (ratio of image height)
-    float vertical_vp_min_distance {0.7};
+    float vertical_vp_min_distance {0.7f};
     // Strategy for vertical direction processing
     RectificationStrategy v_strategy {RECTIFY};
 
     // Minimal distance of horizontal VP from from image center (ratio of image width)
-    float horizontal_vp_min_distance {0.7};
+    float horizontal_vp_min_distance {0.7f};
     // Strategy for horizontal direction processing
     RectificationStrategy h_strategy {RECTIFY};
     // force_half_plane

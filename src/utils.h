@@ -9,16 +9,16 @@
 namespace librectify {
 
 template <typename Derived>
-Eigen::ArrayXi index_array(Derived x)
+Eigen::ArrayXi index_array(const Eigen::ArrayBase<Derived> & x)
 {
-    int n = x.count();
+    Index n = x.count();
     Eigen::ArrayXi idx(n);
     int k = 0;
-    for (int i = 0; i < x.size(); ++i)
+    for (Index i = 0; i < x.size(); ++i)
     {
-        if (x(i) > 0)
+        if (x(i))
         {
-            idx(k++) = i;
+            idx(k++) = int(i);
         }
     }
     return idx;
