@@ -342,14 +342,14 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
     #ifdef _OPENMP
     #pragma omp parallel for private(A,B,U,V) schedule(dynamic,1), num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
-    for (Index i = 0; i < n_lines-1; ++i)
+    for (Index i = 0; i < Index(n_lines); ++i)
     {
         const LineSegment & li = lines[i];
         A << li.x1, li.y1, li.x2, li.y2;
         U.col(0) = d.row(i);
         U.col(1) = n.row(i);
 
-        for (Index j = i+1; j < n_lines; ++j)
+        for (Index j = i+1; j < Index(n_lines); ++j)
         {
             const LineSegment & lj = lines[j];
             B << lj.x1, lj.y1, lj.x2, lj.y2;
@@ -414,11 +414,11 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
         // Make copy to temporary vector
         vector<LineSegment> lbl_lines;
         lbl_lines.reserve(4);
-        for (size_t j = 0; j < components.size(); ++j)
+        for (Index j = 0; j < components.size(); ++j)
             // copy idx[j]-th line to j-th position
             //lbl_lines[j] = lines[idx(j)];
             if (components(j) == lbl)
-                lbl_lines.push_back(lines[j]);
+                lbl_lines.push_back(lines[size_t(j)]);
         // So now lbl_lines is a set of lines to be merged
         LineSegment merged = merge_lines(lbl_lines);
         res.push_back(merged);

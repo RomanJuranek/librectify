@@ -1,3 +1,7 @@
+### Whats new in **v0.9.6**
+* Fixed crash in line refinement
+* Improved compatibility with Visual Studio
+
 ### Whats new in **v0.9.5**
 * Experimental support for line postprocessing (parameter `refine` in `find_line_segment_groups`)
 * Fixed threading issues

@@ -11,10 +11,10 @@ namespace librectify {
 template <typename Derived>
 Eigen::ArrayXi index_array(const Eigen::ArrayBase<Derived> & x)
 {
-    Index n = x.count();
+    Eigen::Index n = x.count();
     Eigen::ArrayXi idx(n);
     int k = 0;
-    for (Index i = 0; i < x.size(); ++i)
+    for (Eigen::Index i = 0; i < x.size(); ++i)
     {
         if (x(i))
         {
