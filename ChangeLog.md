@@ -2,6 +2,7 @@
 * Fixed crash in line refinement
 * Fixed vanishing points in `ImageTransform`
 * Improved compatibility with Visual Studio (mostly warnings)
+* Documentation
 
 ### Whats new in **v0.9.5**
 * Experimental support for line postprocessing (parameter `refine` in `find_line_segment_groups`)
