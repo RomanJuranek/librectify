@@ -241,7 +241,7 @@ void assign_to_group(
     // cout << "idx = " << RowVectorXi(min_index) << endl;
     // cout << thr << endl;
 
-    for (size_t i = 0; i < n_new_lines; ++i)
+    for (size_t i = 0; i < size_t(n_new_lines); ++i)
     {
         LineSegment & l = new_lines_array[i];
         if (min_inclination(i) > thr)
