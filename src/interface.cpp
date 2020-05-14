@@ -72,7 +72,7 @@ LineSegment * find_line_segment_groups(
 
 Point point_from_vector(const Vector3f & p)
 {
-    return Point{p.x(), p.y(), 1};
+    return Point {p.x(), p.y(), p.z()};
 }
 
 Vector3f vector_from_point(const Point & p)
@@ -109,12 +109,10 @@ ImageTransform compute_rectification_transform(
     vector<VanishingPoint> vps = fit_vanishing_points(groupped);
     sort(vps.begin(), vps.end(), [](const VanishingPoint & a,const VanishingPoint & b){ return a.quality() > b.quality();});
 
-    Vector3f image_center {float(width)/2, float(height)/2, 1};
+    Vector3f image_center {float(width)/2, float(height)/2, 0};
 
     auto vp_v = select_vertical_point(vps, image_center, cfg.vertical_vp_angular_tolerance, height*cfg.vertical_vp_min_distance);
     auto vp_h = select_horizontal_point(vps, image_center, vp_v, width*cfg.horizontal_vp_min_distance);
-
-    // vp_v.n_inliers > 0 means that the point was found
 
     Vector3f v1 = vp_h.coords;
     if (v1.z() != 0)
@@ -162,6 +160,12 @@ ImageTransform compute_rectification_transform(
     ImageTransform T;
     T.width = width;
     T.height = height;
+    
+    if (v1_hat.z() != 0)
+        v1_hat.head(2) += image_center.head(2);
+    if (v2_hat.z() != 0)
+        v2_hat.head(2) += image_center.head(2);
+
     T.top_left = point_from_vector(tform.row(0));
     T.top_right = point_from_vector(tform.row(1));
     T.bottom_right = point_from_vector(tform.row(2));
