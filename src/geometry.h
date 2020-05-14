@@ -27,4 +27,6 @@ Eigen::ArrayXi group_id(const std::vector<LineSegment> & lines);
 
 Eigen::VectorXf inclination(const Eigen::MatrixX2f & a, const Eigen::MatrixX2f & d, const Eigen::RowVector3f & p);
 
+Eigen::Vector3f normalize_point(const Eigen::Vector3f & p);
+
 }

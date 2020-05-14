@@ -18,15 +18,6 @@ using namespace Eigen;
 namespace librectify {
 
 
-Vector3f normalize_point(const Vector3f & p)
-{
-    if (abs(p.z()) < EPS)
-        return Vector3f(p.x(), p.y(), 0);
-    else
-        return Vector3f(p.x()/p.z(), p.y()/p.z(), 1);
-}
-
-
 VanishingPoint::VanishingPoint(const MatrixX3f & h, const VectorXf & w)
 {
     Matrix3f cov = h.adjoint() * w.asDiagonal() * h;

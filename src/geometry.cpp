@@ -208,4 +208,14 @@ VectorXf inclination(const MatrixX2f & a, const MatrixX2f & d, const RowVector3f
     return ((v * d.transpose()).diagonal()).cwiseAbs().eval();
 }
 
+
+Vector3f normalize_point(const Vector3f & p)
+{
+    if (abs(p.z()) < EPS)
+        return Vector3f(p.x(), p.y(), 0);
+    else
+        return Vector3f(p.x()/p.z(), p.y()/p.z(), 1);
+}
+
+
 } // namespace
