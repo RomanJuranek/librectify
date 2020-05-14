@@ -48,6 +48,8 @@ void dump_tform(const ImageTransform & t, ostream & f)
     f << t.top_right.x << "," << t.top_right.y << endl;
     f << t.bottom_left.x << "," << t.bottom_left.y << endl;
     f << t.bottom_right.x << "," << t.bottom_right.y << endl;
+    f << t.horizontal_vp.x << "," << t.horizontal_vp.y << "," << t.horizontal_vp.z << endl;
+    f << t.vertical_vp.x << "," << t.vertical_vp.y << "," << t.vertical_vp.z << endl;
 }
 
 // Downscale image if required (larger than max_size) and return scale
