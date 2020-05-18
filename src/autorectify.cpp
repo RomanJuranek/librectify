@@ -140,8 +140,33 @@ LineSegment * detect_line_groups(const Mat & image, int max_size, bool refine, i
 
 
 // Calculate homography matrix from known corner locations
-Mat homography_from_corners(const ImageTransform & t)
+void homography_from_corners(const ImageTransform & t, float clip, Mat & H, Size & dst_size)
 {
+    // Find bounding box of the transform
+    vector<float> x = {t.top_left.x, t.top_right.x, t.bottom_left.x, t.bottom_right.x};
+    vector<float> y = {t.top_left.y, t.top_right.y, t.bottom_left.y, t.bottom_right.y};
+    auto xrange = std::minmax_element(x.begin(), x.end());
+    auto yrange = std::minmax_element(y.begin(), y.end());
+
+    float xmin = *xrange.first;
+    float xmax = *xrange.second;
+    float ymin = *yrange.first;
+    float ymax = *yrange.second;
+
+    // Center of the transformed image
+    float xc = (xmax + xmin) / 2;
+    float yc = (ymax + ymin) / 2;
+
+    // New image size - clip is too large
+    float width = min(xmax - xmin, t.width * clip);
+    float height = min(ymax - ymin, t.height * clip);
+    dst_size = Size(int(width), int(height));
+
+    // New zero coordinate
+    xmin = xc - 0.5*width;
+    ymin = yc - 0.5*height;
+
+    // Calc the transform
     vector<Point2f> src;
     src.push_back(Point2f(0,       0));
     src.push_back(Point2f(t.width, 0));
@@ -149,13 +174,12 @@ Mat homography_from_corners(const ImageTransform & t)
     src.push_back(Point2f(t.width, t.height));
 
     vector<Point2f> dst;
-    dst.push_back(Point2f(t.top_left.x,    t.top_left.y));
-    dst.push_back(Point2f(t.top_right.x,   t.top_right.y));
-    dst.push_back(Point2f(t.bottom_left.x, t.bottom_left.y));
-    dst.push_back(Point2f(t.bottom_right.x,t.bottom_right.y));
+    dst.push_back(Point2f(t.top_left.x - xmin,     t.top_left.y - ymin));
+    dst.push_back(Point2f(t.top_right.x - xmin,    t.top_right.y - ymin));
+    dst.push_back(Point2f(t.bottom_left.x - xmin,  t.bottom_left.y - ymin));
+    dst.push_back(Point2f(t.bottom_right.x - xmin ,t.bottom_right.y - ymin));
 
-    Mat H = findHomography(src, dst);
-    return H;
+    H = findHomography(src, dst);    
 }
 
 
@@ -217,8 +241,8 @@ RectificationStrategy strategy_from_string(string s)
 
 struct Options
 {
-    RectificationStrategy h_strategy {KEEP};
-    RectificationStrategy v_strategy {KEEP};
+    RectificationStrategy h_strategy {RECTIFY};
+    RectificationStrategy v_strategy {RECTIFY};
     string filename {""};
     string suffix {"warp"};
     bool refine_lines {false};
@@ -324,9 +348,12 @@ int main(int argc, char ** argv)
     ///////////////////////////////////////////////////////////////////////////
 
     // Calculate transform for image warping
-    Mat H = homography_from_corners(t);
+    Mat H;
+    Size dst_size;
+    homography_from_corners(t, 3.0, H, dst_size);
+
     Mat image_warped;
-    warpPerspective(image_rgb, image_warped, H, Size(image_rgb.cols, image_rgb.rows));
+    warpPerspective(image_rgb, image_warped, H, dst_size);
 
     Mat image_gray;
     cvtColor(image_8uc, image_gray, COLOR_GRAY2BGR);
