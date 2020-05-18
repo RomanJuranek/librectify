@@ -4,3 +4,6 @@ build/
 Makefile
 .vscode
 ChangeLog.html
+CMakeCache.txt
+CMakeFiles
+*.cmake
