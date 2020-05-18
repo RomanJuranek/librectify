@@ -129,33 +129,91 @@ Returns the internal number of threads. Default value is `0`.
 ### `find_line_segment_groups`
 
 ```c++
-LineSegment * find_line_segment_groups(InputPixelType * buffer, int width, int height, int stride, float min_length, bool refine, int * n_lines);
+LineSegment * find_line_segment_groups(
+    InputPixelType * buffer, int width, int height, int stride,
+    float min_length, bool refine,
+    int * n_lines);
 ```
+
+Detect line segment in an image. The format of the image buffer is defined in the _Data model_ section.
+
+* **buffer** - Pointer to `float` array
+* **width**, **height** - Size of the image
+* **stride** - Step between rows in `float` elements
+* **min_length** - Minimal length of detected line
+* **refine** (experimental) - Line refinement - connect close lines
+* **n_lines** - Output parameter for the number of lines.
+
+The function returns an allocated array of `LineSegment` structures. The number of lines in stored in `n_lines`. These lines can be freely modified or filtered. The array must be released by `release_line_segments`.
 
 ### `release_line_segments`
 ```c++
 void release_line_segments(LineSegment * lines);
 ```
 
+Release allocated array of `LineSegments`. Use this function **only** on arrays returned by `find_line_segmen_groups`.
+
+
 ### `compute_rectification_transform`
 ```c++
-ImageTransform compute_rectification_transform(LineSegment * lines, int n_lines, int width, int height, const RectificationConfig & cfg);
+ImageTransform compute_rectification_transform(
+    LineSegment * lines, int n_lines,
+    int width, int height,
+    const RectificationConfig & cfg);
 ```
+
+Calculate `ImageTransform` from line segments.
+
+* **lines**, **n_lines** - Detected line segments
+* **width**, **height** - Image size in pixels
+* **cfg** - Transform configuration
+
+The function returns `ImageTransform` structure which can be used to calculate projective transform. The corners are in the image-space of the original image (center of the origianl image is mapped to the center of the transformed image) and some coordiantes can be negative. See `autorectify.cpp` how to calculate correct boundiing box and size of the transformed image.
+
 
 ### `compute_rectification_transform_from_vp`
 ```c++
 ImageTransform compute_rectification_transform_from_vp(
-int width, int height, const Point & vp_h, const Point & vp_v);
+    int width, int height,
+    const Point & vp_h, const Point & vp_v);
 ```
+
+* **width**, **height** - Image size
+* **vp_h** - Coordinated of horizontal vanishing point (in pixels)
+* **vp_v** - Coordinated of vertical vanishing point (in pixels)
+
+The output matches that of `compute_rectification_transform`.
+
+
 ### `fit_vanishing_point`
 ```c++
-Point fit_vanishing_point(const LineSegment * lines, int n_lines, int group);
+Point fit_vanishing_point(
+    const LineSegment * lines, int n_lines,
+    int group);
 ```
+
+* **lines**, **n_lines** - Detected line segments
+* **group** - Group for which the vp is calculated
+
+Returns a point calculated from lines with `group_id == group` or from all the lines when `group` is negative.
+
 
 ### `assign_to_group`
 ```c++
-void assign_to_group(const LineSegment * lines_array, int n_lines, LineSegment * new_lines_array, int n_new_lines, float angular_tolarance);
+void assign_to_group(
+    const LineSegment * lines_array, int n_lines,
+    LineSegment * new_lines_array, int n_new_lines,
+    float angular_tolarance);
 ```
+
+Get `group_id` for new lines by assigning then to groups in base lines.
+
+* **lines_array**, **n_lines** - Base line segments
+* **new_lines_array, n_new_lines** - Line segments to assign
+* **angular_tolerance** - Assignment tolerance
+
+Each line of the `new_lins_array` is modified by assigning `group_id` member field. The lines are assigned by checking inclination to vanishing points fromed by `lines_array`.
+
 
 ---
 &copy; 2020 Roman Juranek
