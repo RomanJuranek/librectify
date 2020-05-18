@@ -2,6 +2,8 @@
 * Fixed crash in line refinement
 * Fixed vanishing points in `ImageTransform`
 * Improved compatibility with Visual Studio (mostly warnings)
+* Default behaviour of autorectify changed to full rectification
+* Autorectify now uses automatic bounding box for transformed image
 * Documentation
 
 ### Whats new in **v0.9.5**
