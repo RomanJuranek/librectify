@@ -370,5 +370,5 @@ int main(int argc, char ** argv)
     dump_tform(t, tform_cache);
     tform_cache.close();
 
-    delete [] lines; // cleanup
+    release_line_segments(&lines);
 }

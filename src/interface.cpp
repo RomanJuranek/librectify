@@ -253,9 +253,13 @@ void assign_to_group(
 }
 
 
-void release_line_segments(LineSegment * lines)
+void release_line_segments(LineSegment ** lines)
 {
-    delete [] lines;
+    if (*lines != NULL)
+    {
+        delete [] *lines;
+        *lines = NULL;
+    }
 }
 
 
