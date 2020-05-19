@@ -1,3 +1,7 @@
+### Whats new in **v0.9.7**
+* Thread safety in RANSAC improved
+* `release_line_segments` takes ptr to `LineSegment*` and sets the pointer to 0 after delete
+
 ### Whats new in **v0.9.6**
 * Fixed crash in line refinement
 * Fixed vanishing points in `ImageTransform`
