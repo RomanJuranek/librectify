@@ -148,10 +148,10 @@ The function returns an allocated array of `LineSegment` structures. The number 
 
 ### `release_line_segments`
 ```c++
-void release_line_segments(LineSegment * lines);
+void release_line_segments(LineSegment ** lines);
 ```
 
-Release allocated array of `LineSegments`. Use this function **only** on arrays returned by `find_line_segmen_groups`.
+Release the allocated array of `LineSegments` and set the original pointer to `NULL`. Use this function **only** on arrays returned by `find_line_segmen_groups`.
 
 
 ### `compute_rectification_transform`
