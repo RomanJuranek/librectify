@@ -23,21 +23,26 @@ using namespace Eigen;
 namespace librectify {
 
 
-static std::random_device rd;
-static std::mt19937 rng(rd());
-
-
-vector<int> randsample(size_t n, size_t k)
+class RandomSampler
 {
-    k = min(n, k);
-    set<int> res;
-    auto random_index = uniform_int_distribution<int>(0, int(n-1));
-    while (res.size() < k)
+    std::mt19937_64 rng;
+public:
+    RandomSampler()
+        :rng(random_device()()) { }
+    RandomSampler(const RandomSampler & other)
+        :rng(random_device()()) { }
+    vector<int> sample(size_t n, size_t k)
     {
-        res.insert(random_index(rng));
+        k = min(n, k);
+        set<int> res;
+        auto random_index = uniform_int_distribution<int>(0, int(n-1));
+        while (res.size() < k)
+        {
+            res.insert(random_index(rng));
+        }
+        return vector<int>(res.begin(), res.end());
     }
-    return vector<int>(res.begin(), res.end());
-}
+};
 
 
 class LinePencilModel
@@ -95,9 +100,14 @@ public:
 
 
 // select m random values from first n elements
-void sample(vector<int> & indices, int m, int n, vector<int>::iterator dst)
+void sample(
+    vector<int> & indices,
+    int m,
+    int n,
+    vector<int>::iterator dst,
+    RandomSampler & rng)
 {
-    auto idx = randsample(n, m);
+    auto idx = rng.sample(n, m);
     vector<int> out(m);
     for (int i = 0; i < m; ++i)
     {
@@ -110,13 +120,15 @@ VectorXf RANSAC(LinePencilModel & model, vector<int> indices, int max_iter, floa
 {
     float best_fit = 0;
     VectorXf best_h;
+
+    RandomSampler rng;
     #ifdef _OPENMP
-    #pragma omp parallel for shared(best_h, best_fit), num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for firstprivate(rng) shared(best_h, best_fit) num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
     for (int iter=0; iter < max_iter; ++iter)
     {
         vector<int> samples(2);
-        sample(indices, 2, int(indices.size()), samples.begin());
+        sample(indices, 2, int(indices.size()), samples.begin(), rng);
         VectorXf h = model.fit(samples);
         ArrayXf f = model.fittness(h, indices, tolerance);
         float fit = f.sum();
