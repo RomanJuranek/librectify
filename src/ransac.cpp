@@ -4,7 +4,7 @@
 #include <numeric>
 #include <algorithm>
 #include <random>
-#include <set>
+#include <unordered_set>
 #include <cmath>
 
 #include <Eigen/Core>
@@ -25,24 +25,38 @@ namespace librectify {
 
 class RandomSampler
 {
-    std::mt19937_64 rng;
+    std::mt19937 rng;
+    int range;  // [0, range-1]
+    unordered_set<int> res;
 public:
     RandomSampler()
-        :rng(random_device()()) { }
-    RandomSampler(const RandomSampler & other)
-        :rng(random_device()()) { }
-    vector<int> sample(size_t n, size_t k)
-    {
-        k = min(n, k);
-        set<int> res;
-        auto random_index = uniform_int_distribution<int>(0, int(n-1));
-        while (res.size() < k)
-        {
-            res.insert(random_index(rng));
+        :rng(random_device()()) {
+            reset(0);
         }
-        return vector<int>(res.begin(), res.end());
+    RandomSampler(const RandomSampler & other)
+        :rng(random_device()())
+        {
+            reset(0);
+        }
+    void reset(int k)
+    {
+        range = k;
+        res.clear();
+    }
+    int next()
+    {
+        if (res.size() == range)
+            throw range_error("Exceeded range of random numbers");
+        auto random_index = uniform_int_distribution<int>(0, int(range-1));
+        std::pair<std::unordered_set<int>::iterator,bool> ret;
+        do
+        {
+            ret = res.insert(random_index(rng));
+        } while (!ret.second);
+        return *ret.first;
     }
 };
+
 
 
 class LinePencilModel
@@ -107,11 +121,10 @@ void sample(
     vector<int>::iterator dst,
     RandomSampler & rng)
 {
-    auto idx = rng.sample(n, m);
-    vector<int> out(m);
+    rng.reset(n);
     for (int i = 0; i < m; ++i)
     {
-        *dst++ = indices[idx[i]];
+        *dst++ = indices[rng.next()];
     }
 }
 
@@ -150,7 +163,7 @@ VectorXf RANSAC(LinePencilModel & model, vector<int> indices, int max_iter, floa
     return best_h;
 }
 
-
+/*
 double binom(int n, int k)  
 {  
     int res = 1;  
@@ -184,6 +197,9 @@ double Imin_value(int j, double beta, int n, int m)
         I += P(i, beta, n, m);
     return I;
 }
+
+*/
+
 /*
 
 // PROSAC based on https://willguimont.github.io/cs/2019/12/26/prosac-algorithm.html
