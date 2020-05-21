@@ -45,6 +45,7 @@ void image_gradients(const Image & image, Image & dx, Image & dy, Image & mag)
     conv_2d(image, Hx, dx);
     conv_2d(image, Hy, dy);
     mag = (dx.pow(2) + dy.pow(2)).sqrt();
+    //mag = 0.5 * (dx + dy);
 }
 
 
@@ -90,8 +91,8 @@ vector<LineSegment> fit_lines_to_components(list<Component> & components)
 
 list<Component> find_components(
     vector<Image> & grad,
-    vector<PeakPoint> & seed,
-    vector<int> & seed_bin,
+    const MatrixX2i & seed,
+    const VectorXi & seed_bin,
     float tolerance)
 {
     Mask visited = Mask::Zero(grad[0].rows(), grad[0].cols());
@@ -99,15 +100,14 @@ list<Component> find_components(
    
     list<Component> components;
    
-    size_t i = 0;
-    for (auto & s:seed)
+    for (Index i = 0; i < seed.rows(); ++i)
     {
-        bool was_visited = visited(s.i,s.j);
-        size_t s_bin = seed_bin[i];
+        const auto s = seed.row(i);
+        bool was_visited = visited(s.x(), s.y());
         if (!was_visited)
         {
             Component c;
-            int size = flood(grad[s_bin], {s.i, s.j}, tolerance, visited, c.px_loc, c.px_val);
+            int size = flood(grad[seed_bin(i)], {s.x(), s.y()}, tolerance, visited, c.px_loc, c.px_val);
             if (size > COMPONENT_MIN_SIZE)
             {
                 //#if LGROUP_DEBUG_PRINTS
@@ -116,7 +116,6 @@ list<Component> find_components(
                 components.emplace_back(c);
             }
         }
-        ++i;
     } // seed loop
 
     return components;
@@ -166,7 +165,7 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
     for (int i = 0; i < n_bins; i++)
     {
         Mask mask;
-        binary_dilate((grad_bin==i), mask);
+        binary_dilate((grad_bin==i).eval(), mask);
         //grad[i] *= mask.cast<float>();
         grad[i] = mask.select(grad[i],0);
     }
@@ -182,7 +181,7 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
     #endif
 }
 
-vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines);
+
 vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float seed_ratio, float mag_tolerance)
 {
     #if LGROUP_DEBUG_PRINTS
@@ -208,14 +207,16 @@ vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float
     #endif
 
     float min_seed_value = mag.maxCoeff() * (1 - max(min(seed_ratio,1.f), 0.f));
-    vector<PeakPoint> seed = find_peaks(mag, seed_dist, min_seed_value);
-    vector<int> seed_bin(seed.size());
+    MatrixX2i seed;
+    find_peaks(mag, seed_dist, min_seed_value, seed);
+    VectorXi seed_bin(seed.rows());
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
-    for (int i = 0; i < int(seed.size()); ++i)
+    for (Index i = 0; i < seed.rows(); ++i)
     {
-        seed_bin[i] = grad_bin(seed[i].i, seed[i].j);
+        const auto s = seed.row(i);
+        seed_bin(i) = grad_bin(s.x(), s.y());
     }
 
     #if LGROUP_DEBUG_PRINTS

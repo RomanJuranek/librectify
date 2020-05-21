@@ -7,6 +7,7 @@
 #include "config.h"
 #include "librectify.h"
 #include "geometry.h"
+#include "threading.h"
 
 
 using namespace std;
@@ -95,6 +96,9 @@ float length(const LineSegment & l)
 Vector4f bounding_box(const vector<LineSegment> & lines)
 {
     MatrixX2f coords(2*lines.size(), 2);
+    #ifdef _OPENMP
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #endif
     for (size_t i = 0; i < lines.size(); ++i)
     {
         const LineSegment & l = lines[i];
@@ -111,6 +115,9 @@ Vector4f bounding_box(const vector<LineSegment> & lines)
 MatrixX3f homogeneous(const vector<LineSegment> & lines)
 {
     MatrixX3f h(lines.size(), 3);
+    #ifdef _OPENMP
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #endif
     for (size_t i = 0; i < lines.size(); ++i)
     {
         h.row(i) = homogeneous(lines[i]);
@@ -122,6 +129,9 @@ MatrixX3f homogeneous(const vector<LineSegment> & lines)
 MatrixX2f anchor_point(const vector<LineSegment> & lines)
 {
     MatrixX2f h(lines.size(), 2);
+    #ifdef _OPENMP
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #endif
     for (size_t i = 0; i < lines.size(); ++i)
     {
         h.row(i) = anchor_point(lines[i]);
@@ -133,6 +143,9 @@ MatrixX2f anchor_point(const vector<LineSegment> & lines)
 MatrixX2f direction_vector(const vector<LineSegment> & lines)
 {
     MatrixX2f d(lines.size(), 2);
+    #ifdef _OPENMP
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #endif
     for (size_t i = 0; i < lines.size(); ++i)
     {
         d.row(i) = direction_vector(lines[i]);
@@ -144,6 +157,9 @@ MatrixX2f direction_vector(const vector<LineSegment> & lines)
 VectorXf reprojection_error(const vector<LineSegment> & lines)
 {
     VectorXf err(lines.size());
+    #ifdef _OPENMP
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #endif
     for (size_t i = 0; i < lines.size(); ++i)
     {
         err(i) = std::max(lines[i].err, 0.1f);
@@ -155,6 +171,9 @@ VectorXf reprojection_error(const vector<LineSegment> & lines)
 ArrayXi group_id(const vector<LineSegment> & lines)
 {
     ArrayXi group(lines.size());
+    #ifdef _OPENMP
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #endif
     for (size_t i = 0; i < lines.size(); ++i)
     {
         group(i) = lines[i].group_id;
@@ -166,6 +185,9 @@ ArrayXi group_id(const vector<LineSegment> & lines)
 VectorXf weigths(const vector<LineSegment> & lines)
 {
     VectorXf w(lines.size());
+    #ifdef _OPENMP
+    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #endif
     for (size_t i = 0; i < lines.size(); ++i)
     {
         w(i) = lines[i].weight;

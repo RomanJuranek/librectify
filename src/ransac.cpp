@@ -4,7 +4,7 @@
 #include <numeric>
 #include <algorithm>
 #include <random>
-#include <unordered_set>
+#include <set>
 #include <cmath>
 
 #include <Eigen/Core>
@@ -27,10 +27,11 @@ class RandomSampler
 {
     std::mt19937 rng;
     int range;  // [0, range-1]
-    unordered_set<int> res;
+    set<int> res;
 public:
     RandomSampler()
-        :rng(random_device()()) {
+        :rng(random_device()())
+        {
             reset(0);
         }
     RandomSampler(const RandomSampler & other)
@@ -48,7 +49,8 @@ public:
         if (res.size() == range)
             throw range_error("Exceeded range of random numbers");
         auto random_index = uniform_int_distribution<int>(0, int(range-1));
-        std::pair<std::unordered_set<int>::iterator,bool> ret;
+        std::pair<std::set<int>::iterator,bool> ret;
+        // Try generating new numbers until we get one not in the set.
         do
         {
             ret = res.insert(random_index(rng));
@@ -56,7 +58,6 @@ public:
         return *ret.first;
     }
 };
-
 
 
 class LinePencilModel
@@ -110,7 +111,6 @@ public:
         return (angle_error < tolerance).cast<float>() * length_score;
     }
 };
-
 
 
 // select m random values from first n elements

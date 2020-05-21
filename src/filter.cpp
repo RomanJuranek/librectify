@@ -50,7 +50,9 @@ void binary_dilate(const Mask & image, Mask & out)
     #endif
     for (int i = 0; i < image.rows()-n+1; ++i)
         for (int j = 0; j < image.cols()-n+1; ++j)
+        {
             out(i+1,j+1) = image.block<3,3>(i,j).maxCoeff() != 0;
+        }
 }
 
 
@@ -96,22 +98,22 @@ void flood_init_mask(Mask & mask)
 }
 
 
-int flood(const Image & image, const Location seed, float tolerance, Mask & mask, MatrixX2i & px_loc, VectorXf & px_val)
+int flood(const Image & image, const Vector2i seed, float tolerance, Mask & mask, MatrixX2i & px_loc, VectorXf & px_val)
 {
     float seed_val = image(seed[0], seed[1]);
     float min_val = (1-tolerance) * seed_val;
     
-    vector<Location> res;
+    vector<Vector2i,Eigen::aligned_allocator<Vector2i> > res;
     res.reserve(256);
 
-    queue<Location> pixel_queue;
-    pixel_queue.push({seed[0], seed[1]});
+    queue<Vector2i> pixel_queue;
+    pixel_queue.push(seed);
     while (!pixel_queue.empty())
     {
         auto p = pixel_queue.front();
         pixel_queue.pop();
-        auto r = p[0];
-        auto c = p[1];
+        auto r = p.x();
+        auto c = p.y();
         if (!mask(r,c) && (image(r,c) > min_val))
         {
             res.push_back(p);
@@ -133,9 +135,8 @@ int flood(const Image & image, const Location seed, float tolerance, Mask & mask
     int i = 0;
     for (auto & r: res)
     {
-        px_loc(i,0) = int(r[0]);
-        px_loc(i,1) = int(r[1]);
-        px_val(i) = image(r[0],r[1]);
+        px_loc.row(i) = r;
+        px_val(i) = image(r.x(),r.y());
         ++i;
     }
 
@@ -143,14 +144,19 @@ int flood(const Image & image, const Location seed, float tolerance, Mask & mask
 }
 
 
-vector<PeakPoint> find_peaks(const Image & image, int size, float min_value)
+struct PeakPoint {
+    int i, j;
+    float v;
+};
+
+void find_peaks(const Image & image, int size, float min_value, MatrixX2i & loc)
 {
     Image max_im;
     maximum_filter(image, max_im, size);
     auto peaks = ((max_im == image) && (image > min_value)).eval();
 
     vector<PeakPoint> res;
-    res.reserve(8*1024);
+    res.reserve(1024);
 
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
@@ -158,7 +164,7 @@ vector<PeakPoint> find_peaks(const Image & image, int size, float min_value)
     for (int i = 0; i < peaks.rows(); ++i)
         for (int j = 0; j < peaks.cols(); ++j)
         {
-            if (peaks(i,j) == 1)
+            if (peaks(i,j))
             {
                 #ifdef _OPENMP
                 #pragma omp critical
@@ -168,7 +174,12 @@ vector<PeakPoint> find_peaks(const Image & image, int size, float min_value)
         }
 
     std::sort(res.begin(), res.end(), [](const PeakPoint & i, const PeakPoint & j) {return i.v > j.v;} );
-    return res;
+
+    loc.resize(res.size(), 2);
+    for (Index i = 0; i < res.size(); ++i)
+    {
+        loc.row(i) = Vector2i(res[i].i, res[i].j);
+    }
 }
 
 }
