@@ -176,7 +176,7 @@ void find_peaks(const Image & image, int size, float min_value, MatrixX2i & loc)
     std::sort(res.begin(), res.end(), [](const PeakPoint & i, const PeakPoint & j) {return i.v > j.v;} );
 
     loc.resize(res.size(), 2);
-    for (Index i = 0; i < res.size(); ++i)
+    for (Index i = 0; i < Index(res.size()); ++i)
     {
         loc.row(i) = Vector2i(res[i].i, res[i].j);
     }

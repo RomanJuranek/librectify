@@ -99,7 +99,7 @@ Vector4f bounding_box(const vector<LineSegment> & lines)
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
-    for (size_t i = 0; i < lines.size(); ++i)
+    for (int i = 0; i < int(lines.size()); ++i)
     {
         const LineSegment & l = lines[i];
         coords(2*i+0,all) = Vector2f(l.x1, l.y1);
@@ -118,7 +118,7 @@ MatrixX3f homogeneous(const vector<LineSegment> & lines)
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
-    for (size_t i = 0; i < lines.size(); ++i)
+    for (int i = 0; i < int(lines.size()); ++i)
     {
         h.row(i) = homogeneous(lines[i]);
     }
@@ -132,7 +132,7 @@ MatrixX2f anchor_point(const vector<LineSegment> & lines)
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
-    for (size_t i = 0; i < lines.size(); ++i)
+    for (int i = 0; i < int(lines.size()); ++i)
     {
         h.row(i) = anchor_point(lines[i]);
     }
@@ -146,7 +146,7 @@ MatrixX2f direction_vector(const vector<LineSegment> & lines)
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
-    for (size_t i = 0; i < lines.size(); ++i)
+    for (int i = 0; i < int(lines.size()); ++i)
     {
         d.row(i) = direction_vector(lines[i]);
     }
@@ -160,7 +160,7 @@ VectorXf reprojection_error(const vector<LineSegment> & lines)
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
-    for (size_t i = 0; i < lines.size(); ++i)
+    for (int i = 0; i < int(lines.size()); ++i)
     {
         err(i) = std::max(lines[i].err, 0.1f);
     }
@@ -174,7 +174,7 @@ ArrayXi group_id(const vector<LineSegment> & lines)
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
-    for (size_t i = 0; i < lines.size(); ++i)
+    for (int i = 0; i < int(lines.size()); ++i)
     {
         group(i) = lines[i].group_id;
     }
@@ -188,7 +188,7 @@ VectorXf weigths(const vector<LineSegment> & lines)
     #ifdef _OPENMP
     #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
     #endif
-    for (size_t i = 0; i < lines.size(); ++i)
+    for (int i = 0; i < int(lines.size()); ++i)
     {
         w(i) = lines[i].weight;
     }
