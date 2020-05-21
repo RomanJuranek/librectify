@@ -84,7 +84,16 @@ ImageTransform compute_rectification_transform_from_vp(
     int width, int height,
     const Point & vp_h, const Point & vp_v)
 {
-    auto tform = compute_image_transform(width, height, vector_from_point(vp_h), vector_from_point(vp_v));
+    Vector3f image_center{ float(width) / 2, float(height) / 2, 0 };
+
+    Vector3f v1 = vector_from_point(vp_h);
+    if (v1.z() != 0)
+        v1.head(2) -= image_center.head(2);
+    Vector3f v2 = vector_from_point(vp_v);
+    if (v2.z() != 0)
+        v2.head(2) -= image_center.head(2);
+
+    auto tform = compute_image_transform(width, height, v1, v2);
     
     ImageTransform T;
     T.width = width;
