@@ -30,12 +30,12 @@ class RandomSampler
     set<int> res;
 public:
     RandomSampler()
-        :rng(random_device()())
+        :rng()
         {
             reset(0);
         }
     RandomSampler(const RandomSampler & other)
-        :rng(random_device()())
+        :rng()
         {
             reset(0);
         }
@@ -356,7 +356,11 @@ vector<LineSegment> group_lines(vector<LineSegment> & lines)
     for (int g = 0; g < MAX_GROUPS; ++g)
     {
         vector<int> tmp_outl_indices;
-        int inl_count = estimate_single_line_group(model, outl_indices, g, INLIER_TOLERANCE, back_inserter(inl_indices), back_inserter(inl_groups), back_inserter(tmp_outl_indices));
+        int inl_count = estimate_single_line_group(
+            model, outl_indices, g, INLIER_TOLERANCE,
+            back_inserter(inl_indices),
+            back_inserter(inl_groups),
+            back_inserter(tmp_outl_indices));
         outl_indices = tmp_outl_indices;
         #if LGROUP_DEBUG_PRINTS
         clog << "group_lines: group " << g << ": #outliers: " << tmp_outl_indices.size() << ", #inliers: " << inl_count << endl;
