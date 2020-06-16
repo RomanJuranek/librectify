@@ -17,14 +17,14 @@ add_library(rectify SHARED
 
 set_target_properties(rectify PROPERTIES VERSION ${PROJECT_VERSION})
 #set_target_properties(rectify PROPERTIES CXX_VISIBILITY_PRESET hidden)
-#set_target_properties(rectify PROPERTIES PUBLIC_HEADER liblgroup.h)
+#set_target_properties(rectify PROPERTIES PUBLIC_HEADER librectify.h)
 target_compile_definitions(rectify PUBLIC EIGEN_NO_DEBUG EIGEN_FAST_MATH EIGEN_DONT_PARALLELIZE)
 target_include_directories(rectify PUBLIC ${PROJECT_SOURCE_DIR}/include/eigen)
 
 #include(GenerateExportHeader)
 #generate_export_header(rectify)
 
-target_link_directories(rectify PUBLIC ${PROJECT_SOURCE_DIR}/bin)
+#target_link_directories(rectify PUBLIC ${PROJECT_SOURCE_DIR}/bin)
 
 target_link_libraries(rectify PUBLIC Eigen3::Eigen OpenMP::OpenMP_CXX)
 
@@ -32,5 +32,5 @@ target_link_libraries(rectify PUBLIC Eigen3::Eigen OpenMP::OpenMP_CXX)
 add_executable(autorectify autorectify.cpp)
 target_link_libraries(autorectify rectify ${OpenCV_LIBS})
 
-add_executable(test test.cpp)
-target_link_libraries(test rectify)
+add_executable(test0 test.cpp)
+target_link_libraries(test0 rectify)
