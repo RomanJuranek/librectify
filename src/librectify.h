@@ -87,21 +87,6 @@ struct ImageTransform
 
 
 /*
-Set number of threads to be used by the library.
-By default, the value set by OpenMP library is used. This behaviour
-can be restored by set_num_threads(0). When negative value is set,
-threading is disabled.
-*/
-extern "C" void DLL_PUBLIC set_num_threads(int t);
-
-
-/*
-Get the number of threads
-*/
-extern "C" int DLL_PUBLIC get_num_threads();
-
-
-/*
 Detect line segments in image.
 
 Inputs
@@ -124,6 +109,7 @@ extern "C" DLL_PUBLIC LineSegment * find_line_segment_groups(
     InputPixelType * buffer, int width, int height, int stride,
     float min_length,
     bool refine,
+    int num_threads,
     int * n_lines);
 
 

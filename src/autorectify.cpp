@@ -100,17 +100,20 @@ void draw_lines(II first, II last, Mat & image)
         else
         {
             clr = colors[(g)%12];
-            w = 3;
+            w = 1;
         }
         line(image, cv::Point(l.x1, l.y1), cv::Point(l.x2, l.y2), clr, w);
-        circle(image, cv::Point(l.x1, l.y1), 7, clr, -1);
-        circle(image, cv::Point(l.x2, l.y2), 7, clr, -1);
+        circle(image, cv::Point(l.x1, l.y1), 3, clr, -1);
+        circle(image, cv::Point(l.x2, l.y2), 3, clr, -1);
         ++first;
     }
 }
 
 // Wrapper for find_line_segment_groups accepting OpenCV images of any size
-LineSegment * detect_line_groups(const Mat & image, int max_size, bool refine, int * n_lines)
+LineSegment * detect_line_groups(
+    const Mat & image, int max_size, bool refine,
+    int num_threads,
+    int * n_lines)
 {
     Mat image_f = image;
     image.convertTo(image_f, CV_32F, 1/256.0);
@@ -124,7 +127,7 @@ LineSegment * detect_line_groups(const Mat & image, int max_size, bool refine, i
     int stride = w;
     int min_length = float(max(h,w)) / 100.0f;
 
-    LineSegment * lines = find_line_segment_groups(buffer, w, h, stride, min_length, refine, n_lines);
+    LineSegment * lines = find_line_segment_groups(buffer, w, h, stride, min_length, refine, num_threads, n_lines);
 
     // Scale lines back to the original image
     for (size_t i = 0; i < *n_lines; ++i)
@@ -322,14 +325,11 @@ int main(int argc, char ** argv)
 
     ///////////////////////////////////////////////////////////////////////////
 
-    // Set number of threads for parallelization
-    set_num_threads(opts.num_threads);
-
     // Detect lines in image
     
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
-    int n_lines = 0;
-    LineSegment * lines = detect_line_groups(image_8uc, opts.max_image_size, opts.refine_lines, &n_lines);
+   int n_lines = 0;
+    LineSegment * lines = detect_line_groups(image_8uc, opts.max_image_size, opts.refine_lines, opts.num_threads, &n_lines);
     // Now we have n_lines segments lines[0] .. lines[n_lines-1]
     // We can modify them, e.g. add user defined lines (remember to assign them to the correct group)
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();

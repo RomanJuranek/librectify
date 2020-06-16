@@ -26,13 +26,16 @@ using namespace std;
 namespace librectify {
 
 
-void maximum_filter(const Image & image, Image & out, int size)
+void maximum_filter(
+    const Image & image, Image & out, int size,
+    const ThreadContext & ctx
+    )
 {
     int n = 2*size+1;
     out.resizeLike(image);
     out.setZero();
     #ifdef _OPENMP
-    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (int i = 0; i < image.rows()-n+1; ++i)
         for (int j = 0; j < image.cols()-n+1; ++j)
@@ -40,13 +43,16 @@ void maximum_filter(const Image & image, Image & out, int size)
 }
 
 
-void binary_dilate(const Mask & image, Mask & out)
+void binary_dilate(
+    const Mask & image, Mask & out,
+    const ThreadContext & ctx
+    )
 {
     int n = 3;
     out.resizeLike(image);
     out.setZero();
     #ifdef _OPENMP
-    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (int i = 0; i < image.rows()-n+1; ++i)
         for (int j = 0; j < image.cols()-n+1; ++j)
@@ -72,7 +78,10 @@ ArrayXXf gauss_deriv_kernel(int size, float sigma, bool dir_x)
 }
 
 
-void conv_2d(const Image & image, const Image & kernel, Image & out)
+void conv_2d(
+    const Image & image, const Image & kernel, Image & out,
+    const ThreadContext & ctx
+    )
 {
     auto nr = kernel.rows();
     auto nc = kernel.cols();
@@ -81,7 +90,7 @@ void conv_2d(const Image & image, const Image & kernel, Image & out)
     out.setZero();
 
     #ifdef _OPENMP
-    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (int i = 0; i < image.rows()-nr+1; ++i)
         for (int j = 0; j < image.cols()-nc+1; ++j)
@@ -149,17 +158,20 @@ struct PeakPoint {
     float v;
 };
 
-void find_peaks(const Image & image, int size, float min_value, MatrixX2i & loc)
+void find_peaks(
+    const Image & image, int size, float min_value, MatrixX2i & loc,
+    const ThreadContext & ctx
+    )
 {
     Image max_im;
-    maximum_filter(image, max_im, size);
+    maximum_filter(image, max_im, size, ctx);
     auto peaks = ((max_im == image) && (image > min_value)).eval();
 
     vector<PeakPoint> res;
     res.reserve(1024);
 
     #ifdef _OPENMP
-    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (int i = 0; i < peaks.rows(); ++i)
         for (int j = 0; j < peaks.cols(); ++j)

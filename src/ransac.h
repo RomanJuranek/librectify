@@ -8,6 +8,6 @@
 
 namespace librectify {
 
-std::vector<LineSegment> group_lines(std::vector<LineSegment> & lines);
+std::vector<LineSegment> group_lines(std::vector<LineSegment> & lines, const ThreadContext & ctx);
 
 } // namespace

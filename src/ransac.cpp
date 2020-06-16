@@ -30,12 +30,12 @@ class RandomSampler
     set<int> res;
 public:
     RandomSampler()
-        :rng()
+        :rng(0)
         {
             reset(0);
         }
     RandomSampler(const RandomSampler & other)
-        :rng()
+        :rng(0)
         {
             reset(0);
         }
@@ -129,14 +129,16 @@ void sample(
 }
 
 
-VectorXf RANSAC(LinePencilModel & model, vector<int> indices, int max_iter, float tolerance)
+VectorXf RANSAC(
+    LinePencilModel & model, vector<int> indices, int max_iter, float tolerance,
+    const ThreadContext & ctx)
 {
     float best_fit = 0;
     VectorXf best_h;
 
     RandomSampler rng;
     #ifdef _OPENMP
-    #pragma omp parallel for firstprivate(rng) shared(best_h, best_fit) num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for firstprivate(rng) shared(best_h, best_fit) num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (int iter=0; iter < max_iter; ++iter)
     {
@@ -332,9 +334,10 @@ int estimate_single_line_group(
     float tolerance,
     OutputIterator inls_inds,
     OutputIterator inls_groups,
-    OutputIterator outl_inds)
+    OutputIterator outl_inds,
+    const ThreadContext & ctx)
 {
-    VectorXf p = RANSAC(model, indices, RANSAC_MAX_ITER, tolerance);
+    VectorXf p = RANSAC(model, indices, RANSAC_MAX_ITER, tolerance, ctx);
     auto inliers = model.inliers(p, indices, tolerance);
     partition_indices(indices, inliers, inls_inds, outl_inds);
     int n_inliers = int(inliers.count());
@@ -344,7 +347,10 @@ int estimate_single_line_group(
 }
 
 
-vector<LineSegment> group_lines(vector<LineSegment> & lines)
+vector<LineSegment> group_lines(
+    vector<LineSegment> & lines,
+    const ThreadContext & ctx
+    )
 {
     LinePencilModel model(lines);
 
@@ -360,7 +366,9 @@ vector<LineSegment> group_lines(vector<LineSegment> & lines)
             model, outl_indices, g, INLIER_TOLERANCE,
             back_inserter(inl_indices),
             back_inserter(inl_groups),
-            back_inserter(tmp_outl_indices));
+            back_inserter(tmp_outl_indices),
+            ctx
+            );
         outl_indices = tmp_outl_indices;
         #if LGROUP_DEBUG_PRINTS
         clog << "group_lines: group " << g << ": #outliers: " << tmp_outl_indices.size() << ", #inliers: " << inl_count << endl;

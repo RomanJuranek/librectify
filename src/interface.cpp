@@ -14,6 +14,7 @@
 #include "geometry.h"
 #include "transform.h"
 #include "utils.h"
+#include "threading.h"
 
 
 using namespace Eigen;
@@ -21,14 +22,6 @@ using namespace std;
 
 
 namespace librectify {
-
-
-static vector<LineSegment> _find_line_segment_on_buffer(InputPixelType * buffer, int width, int height, int stride)
-{
-    Image im = image_from_buffer(buffer, width, height, stride);
-    // Detect the lines
-    return find_line_segments(im, SEED_DIST, SEED_RATIO, TRACE_TOLERANCE);
-}
 
 
 template<class InputIterator, class OutputIterator>
@@ -44,22 +37,27 @@ LineSegment * find_line_segment_groups(
     InputPixelType * buffer, int width, int height, int stride,
     float min_length, // filtering
     bool refine,
+    int num_threads,
     int * n_lines 
     )
 {
+    ThreadContext ctx(num_threads);
+
     // Init image from buffer
-    auto lines = _find_line_segment_on_buffer(buffer, width, height, stride);
+    Image im = image_from_buffer(buffer, width, height, stride);
+    // Detect the lines
+    auto lines = find_line_segments(im, SEED_DIST, SEED_RATIO, TRACE_TOLERANCE, ctx);
 
     if (refine)
     {
-        lines = postprocess_lines_segments(lines);
+        lines = postprocess_lines_segments(lines, ctx);
     }
 
     vector<LineSegment> filtered;
     filtered.reserve(lines.size());
     _filter_lines(lines.begin(), lines.end(), back_inserter(filtered), min_length);
 
-    vector<LineSegment> groupped = group_lines(filtered);
+    vector<LineSegment> groupped = group_lines(filtered, ctx);
     
     // Construct resulting array and copy data
     LineSegment * res = new LineSegment[groupped.size()];

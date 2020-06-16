@@ -38,12 +38,12 @@ using namespace std;
 namespace librectify {
 
 
-void image_gradients(const Image & image, Image & dx, Image & dy, Image & mag)
+void image_gradients(const Image & image, Image & dx, Image & dy, Image & mag, const ThreadContext & ctx)
 {
     auto Hx = gauss_deriv_kernel(EDGE_KERNEL_SIZE,EDGE_KERNEL_SIGMA,true);
     auto Hy = gauss_deriv_kernel(EDGE_KERNEL_SIZE,EDGE_KERNEL_SIGMA,false);
-    conv_2d(image, Hx, dx);
-    conv_2d(image, Hy, dy);
+    conv_2d(image, Hx, dx, ctx);
+    conv_2d(image, Hy, dy, ctx);
     mag = (dx.pow(2) + dy.pow(2)).sqrt();
     //mag = 0.5 * (dx + dy);
 }
@@ -63,14 +63,14 @@ struct Component {
 };
 
 
-vector<LineSegment> fit_lines_to_components(list<Component> & components)
+vector<LineSegment> fit_lines_to_components(list<Component> & components, const ThreadContext & ctx)
 {
     //cout << "Fitting line paramteres" << endl;
     vector<LineSegment> res;
     res.reserve(components.size());
     list<Component>::iterator c;
     #ifdef _OPENMP
-    #pragma omp parallel private(c), num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel private(c), num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (c=components.begin(); c != components.end(); ++c)
     {
@@ -123,7 +123,7 @@ list<Component> find_components(
 
 using timept = chrono::steady_clock::time_point;
 
-void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_int & grad_bin, vector<Image> & grad)
+void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_int & grad_bin, vector<Image> & grad, const ThreadContext & ctx)
 {
     grad_bin.resizeLike(dx);
     Image grad_max;
@@ -137,7 +137,7 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
     #endif
 
     #ifdef _OPENMP
-    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (int i = 0; i < n_bins; i++)
     {
@@ -160,12 +160,12 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
     #endif
 
     #ifdef _OPENMP
-    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (int i = 0; i < n_bins; i++)
     {
         Mask mask;
-        binary_dilate((grad_bin==i).eval(), mask);
+        binary_dilate((grad_bin==i).eval(), mask, ctx);
         //grad[i] *= mask.cast<float>();
         grad[i] = mask.select(grad[i],0);
     }
@@ -182,7 +182,7 @@ void gradient_directions(const Image & dx, const Image & dy, int n_bins, Image_i
 }
 
 
-vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float seed_ratio, float mag_tolerance)
+vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float seed_ratio, float mag_tolerance, const ThreadContext & ctx)
 {
     #if LGROUP_DEBUG_PRINTS
     clog << "find_line_segments: image size " << image_size(image) << endl;
@@ -190,7 +190,7 @@ vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float
     #endif
 
     Image dx, dy, mag;
-    image_gradients(image, dx, dy, mag);
+    image_gradients(image, dx, dy, mag, ctx);
 
     #if LGROUP_DEBUG_PRINTS
     timept t1 = std::chrono::steady_clock::now();
@@ -200,7 +200,7 @@ vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float
     Image_int grad_bin;
     // Vector of gradient images
     vector<Image> grad;
-    gradient_directions(dx, dy, 8, grad_bin, grad);
+    gradient_directions(dx, dy, 8, grad_bin, grad, ctx);
 
     #if LGROUP_DEBUG_PRINTS
     timept t2 = std::chrono::steady_clock::now();
@@ -208,10 +208,10 @@ vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float
 
     float min_seed_value = mag.maxCoeff() * (1 - max(min(seed_ratio,1.f), 0.f));
     MatrixX2i seed;
-    find_peaks(mag, seed_dist, min_seed_value, seed);
+    find_peaks(mag, seed_dist, min_seed_value, seed, ctx);
     VectorXi seed_bin(seed.rows());
     #ifdef _OPENMP
-    #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (Index i = 0; i < seed.rows(); ++i)
     {
@@ -231,7 +231,7 @@ vector<LineSegment> find_line_segments(const Image & image, int seed_dist, float
     #endif
 
 
-    auto lines = fit_lines_to_components(components);
+    auto lines = fit_lines_to_components(components, ctx);
     #if LGROUP_DEBUG_PRINTS
     clog << "find_line_segments: " << lines.size() << " line segments" << endl;
     timept t5 = std::chrono::steady_clock::now();
@@ -274,7 +274,10 @@ LineSegment merge_lines(const vector<LineSegment> & lines)
 }
 
 
-void dfs(int v, const SparseMatrix<float> & A, Array<bool,-1,1> & visited, ArrayXi & components, int label)
+void dfs(
+    int v, const SparseMatrix<float> & A, Array<bool,-1,1> & visited, ArrayXi & components, int label,
+    const ThreadContext & ctx
+    )
 {
     queue<int> nodes;
     nodes.push(v);
@@ -285,7 +288,7 @@ void dfs(int v, const SparseMatrix<float> & A, Array<bool,-1,1> & visited, Array
         visited(n) = true;
         components(n) = label;
         #ifdef _OPENMP
-        #pragma omp parallel for num_threads(get_num_threads()) if (is_omp_enabled())
+        #pragma omp parallel for num_threads(ctx.get_num_threads()) if (ctx.enabled())
         #endif
         for (Index u = n+1; u < A.cols(); ++u)
         {
@@ -305,7 +308,10 @@ void dfs(int v, const SparseMatrix<float> & A, Array<bool,-1,1> & visited, Array
     }
 }
 
-ArrayXi graph_components(const SparseMatrix<float> & A)
+ArrayXi graph_components(
+    const SparseMatrix<float> & A,
+    const ThreadContext & ctx
+    )
 {
     Index nv = A.rows();
     Array<bool,-1,1> visited(nv);
@@ -316,14 +322,17 @@ ArrayXi graph_components(const SparseMatrix<float> & A)
         if (!visited(v))
         {
             //cout << "Component " << v << endl;
-            dfs(int(v), A, visited, components, int(v));
+            dfs(int(v), A, visited, components, int(v), ctx);
         }
     }
     return components;
 }
 
 
-vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines)
+vector<LineSegment> postprocess_lines_segments(
+    const vector<LineSegment> & lines,
+    const ThreadContext & ctx
+    )
 {
     size_t n_lines = lines.size();
     //timept t0 = std::chrono::steady_clock::now();
@@ -341,7 +350,7 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
 
     Matrix2f A, B, U, V;
     #ifdef _OPENMP
-    #pragma omp parallel for private(A,B,U,V) schedule(dynamic,1), num_threads(get_num_threads()) if (is_omp_enabled())
+    #pragma omp parallel for private(A,B,U,V) schedule(dynamic,1), num_threads(ctx.get_num_threads()) if (ctx.enabled())
     #endif
     for (Index i = 0; i < Index(n_lines); ++i)
     {
@@ -398,7 +407,7 @@ vector<LineSegment> postprocess_lines_segments(const vector<LineSegment> & lines
     //timept t1 = std::chrono::steady_clock::now();
 
     // Get components and unique labels
-    ArrayXi components = graph_components(aff);
+    ArrayXi components = graph_components(aff, ctx);
     //cerr << components << endl;
     std::set<int> labels(components.begin(), components.end());
     //timept t2 = std::chrono::steady_clock::now();
