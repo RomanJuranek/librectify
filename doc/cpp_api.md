@@ -110,28 +110,13 @@ These search space constraints are important for
 
 ## Interface
 
-### `set_num_threads`
-
-```c++
-void set_num_threads(int t);
-```
-
-Sets the number of threads used by the library. This setting does not affect OpenMP number of threads. Internally, it only sets a variable used by parallel regions. Setting `t` to negative value (or to `1`) disables threading altogether. Setting to `0` forces global OpenMP number of threads (as set by `omp_set_num_threads`). Setting any positive value sets the number of threads (capped by `omp_max_threads`).
-
-### `get_num_threads`
-
-```c++
-int get_num_threads();
-```
-
-Returns the internal number of threads. Default value is `0`.
-
 ### `find_line_segment_groups`
 
 ```c++
 LineSegment * find_line_segment_groups(
     InputPixelType * buffer, int width, int height, int stride,
     float min_length, bool refine,
+    int num_threads,
     int * n_lines);
 ```
 
@@ -142,6 +127,7 @@ Detect line segment in an image. The format of the image buffer is defined in th
 * **stride** - Step between rows in `float` elements
 * **min_length** - Minimal length of detected line
 * **refine** (experimental) - Line refinement - connect close lines
+* **num_threads** - Number of threads to use
 * **n_lines** - Output parameter for the number of lines.
 
 The function returns an allocated array of `LineSegment` structures. The number of lines in stored in `n_lines`. These lines can be freely modified or filtered. The array must be released by `release_line_segments`.

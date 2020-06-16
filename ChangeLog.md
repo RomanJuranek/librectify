@@ -1,3 +1,6 @@
+### Whats new in **v0.9.8**
+* Removed `set_num_threads`/`get_num_threads`. Threading is controlled by `num_threads` parameter in `find_line_segment_groups`.
+
 ### Whats new in **v0.9.7**
 * Thread safety in RANSAC improved
 * `release_line_segments` takes ptr to `LineSegment*` and sets the pointer to 0 after delete
