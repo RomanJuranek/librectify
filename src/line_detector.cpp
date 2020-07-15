@@ -259,7 +259,7 @@ LineSegment merge_lines(const vector<LineSegment> & lines)
     MatrixX2f X(n, 2);
     VectorXf W(n);
     VectorXf l = length(lines);
-    auto wts = l.cwiseProduct(weigths(lines)).eval();
+    auto wts = l.cwiseProduct(weights(lines)).eval();
     for (size_t i = 0; i < lines.size(); ++i)
     {
         const auto & ln = lines[i]; 

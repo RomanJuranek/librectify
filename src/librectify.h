@@ -144,7 +144,6 @@ struct RectificationConfig
     float horizontal_vp_min_distance {0.7f};
     // Strategy for horizontal direction processing
     RectificationStrategy h_strategy {RECTIFY};
-    // force_half_plane
 };
 
 /*

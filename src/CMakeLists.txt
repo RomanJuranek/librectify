@@ -8,17 +8,19 @@ find_package(OpenCV REQUIRED)
 
 set(CMAKE_BUILD_TYPE RELEASE)
 
-add_compile_options(-ffast-math -msse2 -msse3 -mssse3 -msse4 -msse4.1 -mavx -mfma -O3)
+add_compile_options(-ffast-math -msse2 -msse3 -mssse3 -msse4 -msse4.1 -mavx -mfma -mfpmath=sse -O3)
+#add_compile_options(-O1)
 
 add_library(rectify SHARED
     filter.cpp geometry.cpp image.cpp interface.cpp
-    line_detector.cpp ransac.cpp threading.cpp transform.cpp
+    line_detector.cpp threading.cpp transform.cpp
+    line_pencil.cpp math_utils.cpp
 )
 
 set_target_properties(rectify PROPERTIES VERSION ${PROJECT_VERSION})
 #set_target_properties(rectify PROPERTIES CXX_VISIBILITY_PRESET hidden)
 #set_target_properties(rectify PROPERTIES PUBLIC_HEADER librectify.h)
-target_compile_definitions(rectify PUBLIC EIGEN_NO_DEBUG EIGEN_FAST_MATH EIGEN_DONT_PARALLELIZE)
+target_compile_definitions(rectify PUBLIC EIGEN_FAST_MATH EIGEN_DONT_PARALLELIZE)
 target_include_directories(rectify PUBLIC ${PROJECT_SOURCE_DIR}/include/eigen)
 
 #include(GenerateExportHeader)

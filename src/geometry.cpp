@@ -182,7 +182,7 @@ ArrayXi group_id(const vector<LineSegment> & lines)
 }
 
 
-VectorXf weigths(const vector<LineSegment> & lines)
+VectorXf weights(const vector<LineSegment> & lines)
 {
     VectorXf w(lines.size());
     // #ifdef _OPENMP
@@ -214,19 +214,17 @@ VectorXf length(const vector<LineSegment> & lines)
 VectorXf inclination(const MatrixX2f & a, const MatrixX2f & d, const RowVector3f & p)
 {
     MatrixX2f v;
-    if (abs(p.z()) < EPS)
+    if (abs(p.z()) < EPS) // p is ideal point - using it as the direction
     {
         v = MatrixX2f::Zero(a.rows(),2);
         v.rowwise() = RowVector2f(p.x(), p.y());
     }
-    else
+    else // p is real point - normalize and subtract `a`
     {
         RowVector2f p_norm = {p.x()/p.z(), p.y()/p.z()};
         v = (-a).rowwise() + p_norm;
     }
     v.rowwise().normalize();
-   
-    //cerr << ((v * d.transpose()).diagonal()).cwiseAbs().eval() << endl;
     return ((v * d.transpose()).diagonal()).cwiseAbs().eval();
 }
 
@@ -234,10 +232,53 @@ VectorXf inclination(const MatrixX2f & a, const MatrixX2f & d, const RowVector3f
 Vector3f normalize_point(const Vector3f & p)
 {
     if (abs(p.z()) < EPS)
-        return Vector3f(p.x(), p.y(), 0);
+        return Vector3f(p.x(), p.y(), 0.f);
     else
-        return Vector3f(p.x()/p.z(), p.y()/p.z(), 1);
+        return Vector3f(p.x()/p.z(), p.y()/p.z(), 1.f);
 }
 
+Eigen::Vector2f direction(
+    const Eigen::Vector3f & a,
+    const Eigen::Vector3f & b)
+{
+    return Vector2f(a.x() - b.x() * a.z(), a.y() - b.y() * a.z()).normalized();
+}
+
+float distance(
+    const Eigen::Vector3f & a,
+    const Eigen::Vector3f & b)
+{
+    if (a.z() < EPS || b.z() < EPS)
+        return INFINITY;
+    else
+        return Vector2f(a.x()-b.x(), a.y()-b.y()).norm();
+}
+
+
+vector<LineSegment> normalize_lines(const vector<LineSegment> & lines, const Vector2f & p, float s)
+{
+    vector<LineSegment> normlized_lines(lines);
+    for (size_t i=0; i<lines.size(); ++i)
+    {
+        LineSegment & l = normlized_lines[i];
+        l.x1 = (l.x1 - p.x())/s;
+        l.y1 = (l.y1 - p.y())/s;
+        l.x2 = (l.x2 - p.x())/s;
+        l.y2 = (l.y2 - p.y())/s;
+    }
+    return normlized_lines;
+}
+
+Vector2f bbox_center(const Vector4f & bb)
+{
+    Vector2f bb_size = bb.tail<2>() - bb.head<2>();
+    return bb.head<2>() + 0.5 * bb_size;
+}
+
+
+Vector2f bbox_size(const Vector4f & bb)
+{
+    return bb.tail<2>() - bb.head<2>();
+}
 
 } // namespace

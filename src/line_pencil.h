@@ -1,0 +1,36 @@
+#pragma once
+
+#include <vector>
+#include <Eigen/Core>
+#include "librectify.h"
+
+
+namespace librectify {
+
+
+class LinePencilModel
+{
+    Eigen::MatrixX3f h;
+    Eigen::MatrixX2f anchor;
+    Eigen::MatrixX2f direction;
+    Eigen::VectorXf length;
+public:
+    using hypothesis_type = Eigen::Vector3f;
+
+    float degeneracy_tol {0.1};
+
+    LinePencilModel(const std::vector<LineSegment> & lines);
+    int size() const;
+    int minimum_set_size() const;
+    Eigen::ArrayXf get_weights(const Eigen::ArrayXi & indices) const;
+    bool sample_check(const Eigen::ArrayXi & indices) const;
+    hypothesis_type fit(const Eigen::ArrayXi & indices) const;
+    hypothesis_type fit_optimal(const Eigen::ArrayXi & indices) const;
+    Eigen::ArrayXf error(const hypothesis_type & h, const Eigen::ArrayXi & indices) const;
+};
+
+
+void estimate_line_pencils(std::vector<LineSegment> & lines);
+
+
+} // namespace

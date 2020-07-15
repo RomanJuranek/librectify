@@ -25,7 +25,7 @@ public:
     {
         return num_threads >= 0;
     }
-    int set_num_threads(int t)
+    void set_num_threads(int t)
     {
         num_threads = std::min(t, omp_get_max_threads());
     }

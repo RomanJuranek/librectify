@@ -10,7 +10,8 @@
 #include "librectify.h"
 #include "image.h"
 #include "line_detector.h"
-#include "ransac.h"
+//#include "ransac.h"
+#include "line_pencil.h"
 #include "geometry.h"
 #include "transform.h"
 #include "utils.h"
@@ -57,7 +58,9 @@ LineSegment * find_line_segment_groups(
     filtered.reserve(lines.size());
     _filter_lines(lines.begin(), lines.end(), back_inserter(filtered), min_length);
 
-    vector<LineSegment> groupped = group_lines(filtered, ctx);
+    //vector<LineSegment> groupped = group_lines(filtered, ctx);
+    estimate_line_pencils(filtered);
+    auto & groupped = filtered;
     
     // Construct resulting array and copy data
     LineSegment * res = new LineSegment[groupped.size()];
@@ -113,18 +116,18 @@ ImageTransform compute_rectification_transform(
     const RectificationConfig & cfg)
 {
     vector<LineSegment> groupped(lines, lines+n_lines);
-    vector<VanishingPoint> vps = fit_vanishing_points(groupped);
-    sort(vps.begin(), vps.end(), [](const VanishingPoint & a,const VanishingPoint & b){ return a.quality() > b.quality();});
+    MatrixX3f vps = fit_vanishing_points(groupped);
+    //sort(vps.begin(), vps.end(), [](const VanishingPoint & a,const VanishingPoint & b){ return a.quality() > b.quality();});
 
     Vector3f image_center {float(width)/2, float(height)/2, 0};
 
     auto vp_v = select_vertical_point(vps, image_center, cfg.vertical_vp_angular_tolerance, height*cfg.vertical_vp_min_distance);
     auto vp_h = select_horizontal_point(vps, image_center, vp_v, width*cfg.horizontal_vp_min_distance);
 
-    Vector3f v1 = vp_h.coords;
+    Vector3f v1 = vp_h;
     if (v1.z() != 0)
         v1.head(2) -= image_center.head(2);
-    Vector3f v2 = vp_v.coords;
+    Vector3f v2 = vp_v;
     if (v2.z() != 0)
         v2.head(2) -= image_center.head(2);
 
@@ -184,80 +187,80 @@ ImageTransform compute_rectification_transform(
 }
 
 
-Point fit_vanishing_point(const LineSegment * lines_array, int n_lines, int group)
-{
-    vector<LineSegment> lines(lines_array, lines_array+n_lines);
-    ArrayXi groups = group_id(lines);
-    MatrixX3f h = homogeneous(lines).rowwise().normalized();
-    VectorXf wts = weigths(lines);
-    VectorXf len = length(lines);
+// Point fit_vanishing_point(const LineSegment * lines_array, int n_lines, int group)
+// {
+//     vector<LineSegment> lines(lines_array, lines_array+n_lines);
+//     ArrayXi groups = group_id(lines);
+//     MatrixX3f h = homogeneous(lines).rowwise().normalized();
+//     VectorXf wts = weigths(lines);
+//     VectorXf len = length(lines);
 
-    // cout << h << endl << endl;
-    // cout << wts << endl << endl;
-    // cout << len << endl << endl;
+//     // cout << h << endl << endl;
+//     // cout << wts << endl << endl;
+//     // cout << len << endl << endl;
 
-    if (group < 0)
-    {
-        auto vp = VanishingPoint(h, len.cwiseProduct(wts));
-        return point_from_vector(vp.coords);
-    }
-    else
-    {
-        auto idx = index_array(groups == group);
-        auto vp = VanishingPoint(h(idx, all), len(idx).cwiseProduct(wts(idx)));
-        return point_from_vector(vp.coords);
-    }
-}
+//     if (group < 0)
+//     {
+//         auto vp = VanishingPoint(h, len.cwiseProduct(wts));
+//         return point_from_vector(vp.coords);
+//     }
+//     else
+//     {
+//         auto idx = index_array(groups == group);
+//         auto vp = VanishingPoint(h(idx, all), len(idx).cwiseProduct(wts(idx)));
+//         return point_from_vector(vp.coords);
+//     }
+// }
 
 
-void assign_to_group(
-    const LineSegment * lines_array, int n_lines,
-    LineSegment * new_lines_array, int n_new_lines,
-    float angular_tolarance)
-{
-    vector<LineSegment> lines(lines_array, lines_array+n_lines);
-    vector<VanishingPoint> vps = fit_vanishing_points(lines);
+// void assign_to_group(
+//     const LineSegment * lines_array, int n_lines,
+//     LineSegment * new_lines_array, int n_new_lines,
+//     float angular_tolarance)
+// {
+//     vector<LineSegment> lines(lines_array, lines_array+n_lines);
+//     vector<VanishingPoint> vps = fit_vanishing_points(lines);
 
-    vector<LineSegment> new_lines(new_lines_array, new_lines_array+n_new_lines);
-    MatrixX2f a = anchor_point(new_lines);
-    MatrixX2f d = direction_vector(new_lines).rowwise().normalized();
+//     vector<LineSegment> new_lines(new_lines_array, new_lines_array+n_new_lines);
+//     MatrixX2f a = anchor_point(new_lines);
+//     MatrixX2f d = direction_vector(new_lines).rowwise().normalized();
     
-    ArrayXf min_inclination = ArrayXf::Zero(n_new_lines);
-    ArrayXi min_index = ArrayXi::Zero(n_new_lines);
+//     ArrayXf min_inclination = ArrayXf::Zero(n_new_lines);
+//     ArrayXi min_index = ArrayXi::Zero(n_new_lines);
 
-    // cout << "size: " << new_lines.size() << endl;
-    // cout << "a=\n" << a << endl;
-    // cout << "d=\n" << d << endl;
+//     // cout << "size: " << new_lines.size() << endl;
+//     // cout << "a=\n" << a << endl;
+//     // cout << "d=\n" << d << endl;
 
-    for (size_t i = 0; i < vps.size(); ++i)
-    {
-        Vector3f p = vps[i].coords;
-        ArrayXf x = inclination(a, d, p).array();
+//     for (size_t i = 0; i < vps.size(); ++i)
+//     {
+//         Vector3f p = vps[i].coords;
+//         ArrayXf x = inclination(a, d, p).array();
 
-        // cout << "p: " << RowVector3f(p) << endl;
-        // cout << "x: " << x.transpose() << endl;
+//         // cout << "p: " << RowVector3f(p) << endl;
+//         // cout << "x: " << x.transpose() << endl;
         
-        Array<bool,-1,1> mask = (x > min_inclination).eval();
-        min_inclination = mask.select(x, min_inclination);
-        min_index = mask.select(int(i), min_index);
-    }
+//         Array<bool,-1,1> mask = (x > min_inclination).eval();
+//         min_inclination = mask.select(x, min_inclination);
+//         min_index = mask.select(int(i), min_index);
+//     }
     
-    float thr = cos(angular_tolarance / 180 * float(M_PI));
+//     float thr = cos(angular_tolarance / 180 * float(M_PI));
 
-    // cout << "incl = " << RowVectorXf(min_inclination) << endl;
-    // cout << "idx = " << RowVectorXi(min_index) << endl;
-    // cout << thr << endl;
+//     // cout << "incl = " << RowVectorXf(min_inclination) << endl;
+//     // cout << "idx = " << RowVectorXi(min_index) << endl;
+//     // cout << thr << endl;
 
-    for (size_t i = 0; i < size_t(n_new_lines); ++i)
-    {
-        LineSegment & l = new_lines_array[i];
-        if (min_inclination(i) > thr)
-        {
-            l.group_id = min_index(i);
-        }
-    }
+//     for (size_t i = 0; i < size_t(n_new_lines); ++i)
+//     {
+//         LineSegment & l = new_lines_array[i];
+//         if (min_inclination(i) > thr)
+//         {
+//             l.group_id = min_index(i);
+//         }
+//     }
 
-}
+// }
 
 
 void release_line_segments(LineSegment ** lines)
