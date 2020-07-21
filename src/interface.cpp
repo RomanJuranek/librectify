@@ -10,7 +10,6 @@
 #include "librectify.h"
 #include "image.h"
 #include "line_detector.h"
-//#include "ransac.h"
 #include "line_pencil.h"
 #include "geometry.h"
 #include "transform.h"
@@ -58,7 +57,6 @@ LineSegment * find_line_segment_groups(
     filtered.reserve(lines.size());
     _filter_lines(lines.begin(), lines.end(), back_inserter(filtered), min_length);
 
-    //vector<LineSegment> groupped = group_lines(filtered, ctx);
     estimate_line_pencils(filtered);
     auto & groupped = filtered;
     

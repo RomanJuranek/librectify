@@ -6,12 +6,17 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
-#include "config.h"
 #include "cht.h"
+#include "config.h"
 #include "image.h"
 
 using namespace Eigen;
 using namespace std;
+
+
+namespace librectify {
+
+namespace cht {
 
 /*
 Calculate line intersections with diagonals
@@ -193,28 +198,12 @@ void accumulate_lines(
 
 
 
-DiamondSpace::DiamondSpace(int sz)
-    :SS(SubspaceAccumulator(sz, 1, 1))
-{
-}
-
-DiamondSpace::~DiamondSpace()
-{
-}
-
-void DiamondSpace::clear()
-{
-    SS.acc.setZero();
-}
-
-void DiamondSpace::accumulate(const Lines & lines, const Eigen::VectorXf & weights)
+void DiamondAccumulator::insert(const MatrixX3f & lines, const VectorXf & weights)
 {   
     auto D = line_intersections_diag(lines);
     auto A = line_intersections_axes(lines);
 
     Segments seg_ST = get_endpoints(D[0], A[0], A[3]);
-    cerr << "segs=\n" << (seg_ST.array() * (size-1)).round().cast<int>() << endl;
-
     accumulate_lines(ST, seg_ST * (size-1));
 
     Segments seg_SS = get_endpoints(D[1], A[1], A[3]);
@@ -227,16 +216,14 @@ void DiamondSpace::accumulate(const Lines & lines, const Eigen::VectorXf & weigh
     accumulate_lines(TS, seg_TS * (size-1));
 }
 
-float DiamondSpace::argmax(Point & p) const
+
+float DiamondAccumulator::argmax(Vector3f & p) const
 {
-    Index r, c;
-    float max_val = acc.maxCoeff(&r, &c);
-    p = Point(c, r, 1);
-    return max_val;
+    // Get maxima from all spaces
+    // Get the largest one
+    // get its DS coords from index -> DS mapping
 }
 
+} // cht
 
-DiamondSpace lines_to_cht(vector<LineSegment> & lines, int resolution)
-{
-
-}
+} // librectify

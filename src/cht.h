@@ -82,47 +82,41 @@ namespace librectify {
 namespace cht {
 
 
-using Line = Eigen::Vector3f;
-using Lines = Eigen::MatrixX3f;
-
-using Point = Eigen::Vector3f;
-using Points = Eigen::MatrixX3f;
-
-using Weights = Eigen::VectorXf;
-
-using Segment = Eigen::Vector4f;
-using Segments = Eigen::MatrixX4f;
-
-
-class DiamondSpace
+class DiamondAccumulator
 {
+private:
+    using AccumulatorType = Eigen::ArrayXXf;
 
-    class SubspaceAccumulator
-    {
-        Eigen::ArrayXXf acc;
-        Eigen::VectorXf r, c;
-    };
+    int d; // size of space
+    AccumulatorType SS, ST, TS, TT;
 
-    SubspaceAccumulator SS, ST, TS, TT;
-
+    int n_lines {0};
+    
 public:
-    DiamondSpace(int sz);
-    ~DiamondSpace();
+    DiamondAccumulator(int _d)
+        :d(_d)
+    {
+        SS = AccumulatorType(d,d);
+        // ...
+        clear();
+    }
+    ~DiamondAccumulator();
 
-    void clear();
-    void accumulate_lines(const Lines & lines, const Weights & weights);
-    std::tuple<Points,Weights> find_peaks(int max_peaks, int min_value) const;
+    void clear()
+    {
+        SS.setZero(); 
+        // ...
+    }
 
-    void add(const DiamondSpace & other);
-    void subtract(const DiamondSpace & other);
+    // Add lines to to accumulator
+    void insert(const Eigen::MatrixX3f & h, const Eigen::VectorXf & w);
 
-    Points forward(const Points & x) const;
-    Points backward(const Points & x) const;
+    float argmax(Eigen::Vector3f & p) const;
+
+    // Mapping R2 <-> DS
+    Eigen::MatrixX3f transform(const Eigen::MatrixX3f & x) const;
+    Eigen::MatrixX3f inverse(const Eigen::MatrixX3f & x) const;
 };
-
-
-Eigen::VectorXf cascaded_hough_transform(const Eigen::MatrixX3f & lines, const ArrayXf & weights, int d);
-
 
 } // namespace cht
 
