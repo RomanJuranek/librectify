@@ -17,7 +17,9 @@ class LinePencilModel
 public:
     using hypothesis_type = Eigen::Vector3f;
 
-    float degeneracy_tol {0.1};
+    float degeneracy_tol {0.05};
+    int ht_space_size {65};
+    int ht_num_hypotheses {20000};
 
     LinePencilModel(const std::vector<LineSegment> & lines);
     int size() const;
@@ -29,8 +31,6 @@ public:
     Eigen::ArrayXf error(const hypothesis_type & h, const Eigen::ArrayXi & indices) const;
 };
 
-
 void estimate_line_pencils(std::vector<LineSegment> & lines);
-
 
 } // namespace

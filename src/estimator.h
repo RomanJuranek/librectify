@@ -60,6 +60,7 @@ public:
                 //std::cerr << h.transpose() << std::endl;
             }
         }
+        //std::cerr << "---" <<std::endl;
 
         auto inliers = nonzero(best_err < tol);
         return model.fit_optimal(indices(inliers));
@@ -72,11 +73,13 @@ class DirectEstimator: Estimator<ModelType>
 {
 public:
     using hypothesis_type = typename ModelType::hypothesis_type;
+    float inlier_threshold {0.95};
+
     DirectEstimator() { }
     hypothesis_type solve(const ModelType & model, const Eigen::ArrayXi & indices, float tol)
     {
         Eigen::ArrayXf weights = model.get_weights(indices);
-        auto inls = nonzero(weights > 0.9);
+        auto inls = nonzero(weights > inlier_threshold);
         return model.fit_optimal(indices(inls));
     }
 };

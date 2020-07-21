@@ -1,6 +1,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include <random>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -43,10 +44,47 @@ int LinePencilModel::minimum_set_size() const
 
 ArrayXf LinePencilModel::get_weights(const ArrayXi & indices) const
 {
-    return -(direction(indices,all) * Eigen::Vector2f(0,1)).cwiseAbs().array() + 1.0f;
-    //return length(indices).eval();
-    // VectorXf h = cascaded_hough_transform(h(indices,all), 32);
-    // return inlier_score(h, indices);
+    float k = floor(ht_space_size/2.f);
+    float k1 = k - 1;
+    ArrayXXf accumulator = ArrayXXf::Zero(ht_space_size,ht_space_size);
+
+    auto rng = std::mt19937();
+    auto rand_idx = std::uniform_int_distribution<int>(0, indices.size()-1);
+
+    for (int i = 0; i < ht_num_hypotheses; ++i)
+    {
+        int a = indices(rand_idx(rng));
+        int b = indices(rand_idx(rng));
+        Vector3f x = h.row(a).cross(h.row(b));
+        if ((x.array().abs() < 0.0001f).all())  // Check invalid point
+            continue;
+        x.normalize();
+        if (x.z() < 0.f)
+            x = -x;
+        int u = trunc(x(0) * k1) + k;
+        int v = trunc(x(1) * k1) + k;
+        accumulator.block<3,3>(u-1,v-1) += length(a)+length(b);
+    }
+
+    //cout << accumulator << endl;
+
+    int max_u, max_v;
+    float max_val = accumulator.maxCoeff(&max_u, &max_v);
+
+    //cerr << RowVector2i(max_u,max_v) << ", " << max_val << endl;
+
+    float u = (max_u - k) / k1;
+    float v = (max_v - k) / k1;
+    
+    Vector3f p(u,v,0);
+    if (p.norm() > 1)
+    {
+        p /= p.norm();
+}
+
+    p.z() = sqrt(1.f - (pow(p.x(),2.f) + pow(p.y(),2.f)));
+
+    return 1 - error(p, indices);
 }
 
 
@@ -90,22 +128,31 @@ ArrayXf LinePencilModel::error(const hypothesis_type & h, const ArrayXi & indice
 }
 
 
-void estimate_line_pencils(vector<LineSegment> & lines)
+void estimate_line_pencils(
+    vector<LineSegment> & lines)
 {
     auto bb = bounding_box(lines);
     auto p = bbox_center(bb);
     float scale = bbox_size(bb).maxCoeff();
-    
     auto lines_norm = normalize_lines(lines, p, scale);
 
     // normalize lines
     LinePencilModel model(lines_norm);
-    // RANSAC_Estimator<LinePencilModel> estimator(10000);
-    PROSAC_Estimator<LinePencilModel> estimator;
-    //DirectEstimator<LinePencilModel> estimator;
+
+    //RANSAC_Estimator<LinePencilModel> estimator(10000);
+    
+    // PROSAC_Estimator<LinePencilModel> estimator;
+    // estimator.eta = 0.01;
+    // model.ht_num_hypotheses = 50000;
+    // model.ht_space_size = 257;
+
+    DirectEstimator<LinePencilModel> estimator;
+    model.ht_num_hypotheses = 50000;
+    model.ht_space_size = 129;
+    estimator.inlier_threshold = 0.95;
 
     // run estimator on normalized lines
-    ArrayXi groups = estimate_multiple_structures(estimator, model, 4, 0.002);
+    ArrayXi groups = estimate_multiple_structures(estimator, model, 4, 0.001);
 
     // groups contains an id which can be just put into the group_id
     // Set group_id to original lines - same order
