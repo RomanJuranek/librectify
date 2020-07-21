@@ -58,13 +58,15 @@ int niter_RANSAC(double p, // probability that at least one of the random sample
 template <typename ModelType>
 class PROSAC_Estimator: Estimator<ModelType>
 {
-    float eta {0.001};
-    float beta {0.001};
-    float psi {0.01};
-    float p_good_sample {0.5};
-    float max_outlier_proportion {0.8};
+public:
+    float eta {0.05};
+    float beta {0.01};
+    float psi {0.02};
+    float p_good_sample {0.9};
+    float max_outlier_proportion {0.5};
+    
+private:
     std::mt19937 rng;
-
     float chi2_value;
 
     // * Non-randomness: eq. (7) states that i-m (where i is the cardinal of the set of inliers for a wrong
@@ -103,8 +105,10 @@ public:
     {
         Eigen::ArrayXf weights = model.get_weights(indices);
         Eigen::ArrayXi order = argsort(weights);
-        weights = weights(order);
+        weights = weights(order).eval();
         Eigen::ArrayXi idx = indices(order).eval();
+
+        //std::cerr << weights.transpose() << endl;
 
         const int N = idx.size();
 
@@ -126,9 +130,9 @@ public:
         hypothesis_type p_best;
         Eigen::ArrayXf best_score;
 
-        printf("PROSAC sampling test\n");
-        printf("number of correspondences (N):%d\n", N);
-        printf("sample size (m):%d\n", m);
+        // printf("PROSAC sampling test\n");
+        // printf("number of correspondences (N):%d\n", N);
+        // printf("sample size (m):%d\n", m);
 
         n_star = N;
         I_n_star = 0;
@@ -146,7 +150,7 @@ public:
         while(((I_N_best < I_N_min) || t <= k_n_star) && t < T_N) {
             // Choice of the hypothesis generation set
             t = t + 1;
-            cerr << "t=" << t << endl;
+            // cerr << "t=" << t << endl;
             // from the paper, eq. (5) (not Algorithm1):
             // "The growth function is then deï¬ned as
             //  g(t) = min {n : Tâ€²n â‰¥ t}"
@@ -157,13 +161,13 @@ public:
                 T_n_prime = T_n_prime + ceil(T_nplus1 - T_n);
                 //printf("g(t)=n=%d, n_star=%d, T_n-1>=%d, T_n>=%d, T_n'=%d...",
                 //    n, n_star, (int)ceil(T_n), (int)ceil(T_nplus1), T_n_prime);
-                cerr << "g(t)=" << n << ", n*=" << n_star << ", T_n-1=" << ceil(T_n) << ", T_n>=" << ceil(T_nplus1) << ", T_n'=" << T_n_prime << endl;
+                // cerr << "g(t)=" << n << ", n*=" << n_star << ", T_n-1=" << ceil(T_n) << ", T_n>=" << ceil(T_nplus1) << ", T_n'=" << T_n_prime << endl;
                 T_n = T_nplus1;
             }
             else {
                 //printf("g(t)=n=%d, n_star=%d, T_n>=%d, T_n'=%d: ",
                 //    n, n_star, (int)ceil(T_n), T_n_prime);
-                cerr << "g(t)=" << n << ", n*=" << n_star << ", T_n-1=" << ceil(T_n) << ", T_n'=" << T_n_prime << endl;
+                // cerr << "g(t)=" << n << ", n*=" << n_star << ", T_n-1=" << ceil(T_n) << ", T_n'=" << T_n_prime << endl;
             }
             
             Eigen::ArrayXi sample(m);
@@ -174,14 +178,14 @@ public:
                 // during the finishing stage (n== n_star && t > T_n_prime), draw a standard RANSAC sample
                 // The sample contains m points selected from U_n at random
                 choice_knuth(n, m, rng, sample);
-                cerr << "Draw " << m << " points from U_" << n << endl;
+                // cerr << "Draw " << m << " points from U_" << n << endl;
             }
             else {
                 // The sample contains m-1 points selected from U_{nâˆ’1} at random and u_n
                 choice_knuth(n-1, m-1, rng, sample);
                 sample(m-1) = n;
                 //printf("Draw %d points from U_%d and point u_%d... ", m-1, n-1, n);
-                cerr << "Draw " << m-1 << " points from U_" << n-1 << "and u_" << n << endl;
+                // cerr << "Draw " << m-1 << " points from U_" << n-1 << "and u_" << n << endl;
             }
 
             sample_indices = idx(sample);
@@ -205,7 +209,7 @@ public:
             auto isInlier = (err < tol).eval();
             int I_N = isInlier.count();
 
-            printf("found %d inliers!\n", I_N);
+            // printf("found %d inliers!\n", I_N);
 
             if (I_N > I_N_best) {
                 int n_best; // best value found so far in terms of inliers ratio
@@ -285,7 +289,7 @@ public:
                     n_star = n_best;
                     I_n_star = I_n_best;
                     k_n_star = niter_RANSAC(1.-eta, 1.-I_n_star/(double)n_star, m, T_N);
-                    printf("new values: n_star=%d, k_n_star=%d, I_n_star=%d, I_min=%d\n", n_star, k_n_star, I_n_star, Imin(m,n_best));
+                    // printf("new values: n_star=%d, k_n_star=%d, I_n_star=%d, I_min=%d\n", n_star, k_n_star, I_n_star, Imin(m,n_best));
                 }
             } // if (I_N > I_N_best)
         } // while(t <= k_n_star ...
