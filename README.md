@@ -10,6 +10,13 @@ TACR project TH04010394, Progressive Image Processing Algorithms._
 The library requires no external dependencies (apart from standard library and OpenMP runtime). Internally we use Eigen for representation of images and linear algebra.
 Example app uses OpenCV for image IO and warping.
 
+## Algorithms
+
+* Basic image processing (convolution, morphology, local maxima, flood)
+* Basic geometry processing in homogrneous coordinates
+* Eigen value solver
+* RANSAC, PROSAC, Hough Transform
+
 ## Documentation
 
 [C++ API](doc/cpp_api.md)

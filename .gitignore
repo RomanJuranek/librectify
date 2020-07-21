@@ -7,3 +7,4 @@ ChangeLog.html
 CMakeCache.txt
 CMakeFiles
 *.cmake
+doc/cpp_api.html
