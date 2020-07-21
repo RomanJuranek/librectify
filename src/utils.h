@@ -39,7 +39,7 @@ Eigen::ArrayXi argsort(const Eigen::DenseBase<Derived> & x)
     Eigen::ArrayXi idx(x.size());
     std::iota(idx.begin(), idx.end(), 0);
     std::stable_sort(idx.begin(), idx.end(),
-       [&x](size_t i, size_t j) {return x(i) < x(j);});
+       [&x](size_t i, size_t j) {return x(i) > x(j);});
     return idx;
 }
 
