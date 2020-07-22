@@ -328,7 +328,7 @@ int main(int argc, char ** argv)
     // Detect lines in image
     
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
-   int n_lines = 0;
+    int n_lines = 0;
     LineSegment * lines = detect_line_groups(image_8uc, opts.max_image_size, opts.refine_lines, opts.num_threads, &n_lines);
     // Now we have n_lines segments lines[0] .. lines[n_lines-1]
     // We can modify them, e.g. add user defined lines (remember to assign them to the correct group)

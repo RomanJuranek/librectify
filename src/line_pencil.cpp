@@ -71,16 +71,11 @@ ArrayXf LinePencilModel::get_weights(const ArrayXi & indices) const
     int max_u, max_v;
     float max_val = accumulator.maxCoeff(&max_u, &max_v);
 
-    //cerr << RowVector2i(max_u,max_v) << ", " << max_val << endl;
-
-    float u = (max_u - k) / k1;
-    float v = (max_v - k) / k1;
-    
-    Vector3f p(u,v,0);
-    if (p.norm() > 1)
+    Vector3f p((max_u-k)/k1 , (max_v-k)/k1, 0);
+    if (p.norm() > 1.f)
     {
         p /= p.norm();
-}
+    }
 
     p.z() = sqrt(1.f - (pow(p.x(),2.f) + pow(p.y(),2.f)));
 
@@ -112,8 +107,16 @@ LinePencilModel::hypothesis_type LinePencilModel::fit(const ArrayXi & indices) c
 
 LinePencilModel::hypothesis_type LinePencilModel::fit_optimal(const ArrayXi & indices) const
 {
-    VectorXf w = length(indices);
-    Matrix3f cov = h(indices,all).adjoint() * w.asDiagonal() * h(indices,all);
+    Matrix3f cov;
+    if (indices.size() == 0)
+    {
+        cov = h.adjoint() * length.asDiagonal() * h;
+    }
+    else
+    {
+        VectorXf w = length(indices);
+        cov = h(indices,all).adjoint() * w.asDiagonal() * h(indices,all);
+    }
     SelfAdjointEigenSolver<Matrix3f> eig(cov);
     Index k;
     eig.eigenvalues().minCoeff(&k);

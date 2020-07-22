@@ -1,4 +1,6 @@
 #include <iostream>
+#include <set>
+#include <map>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -19,7 +21,7 @@ using namespace Eigen;
 namespace librectify {
 
 
-MatrixX3f fit_vanishing_points(const vector<LineSegment> & lines)
+Vector3f fit_single_vanishing_points(const vector<LineSegment> & lines, int g)
 {
     auto bb = bounding_box(lines);
     auto c = bbox_center(bb);
@@ -29,11 +31,41 @@ MatrixX3f fit_vanishing_points(const vector<LineSegment> & lines)
     LinePencilModel model(lines_norm);
 
     ArrayXi groups = group_id(lines);
-    int n_groups = groups.maxCoeff() + 1;
+    ArrayXi indices = ArrayXi();
+    if (g > 0)
+        indices = nonzero(groups == g);
 
-    MatrixX3f res(n_groups, 3);
+    auto vp = normalize_point(model.fit_optimal(indices));
+    // Apply un-normalization to get coords in original space
+    if (vp.z() > 0)
+    {
+        vp.x() = scale * vp.x() + c.x(); // can be done with matrix multiplication
+        vp.y() = scale * vp.y() + c.y();
+    }
 
-    for (Index g = 0; g < n_groups; ++g)
+    return vp;
+}
+
+
+
+
+map<int, Vector3f> fit_vanishing_points(const vector<LineSegment> & lines)
+{
+    auto bb = bounding_box(lines);
+    auto c = bbox_center(bb);
+    float scale = bbox_size(bb).maxCoeff();
+    auto lines_norm = normalize_lines(lines, c, scale);
+
+    LinePencilModel model(lines_norm);
+
+    ArrayXi groups = group_id(lines);
+    
+    set<int> unique_groups(groups.begin(), groups.end());
+    unique_groups.erase(-1); // remove group -1 which is ignored
+
+    map<int, Vector3f> res;
+
+    for (auto g : unique_groups)
     {
         auto indices = nonzero(groups == g);
         auto vp = normalize_point(model.fit_optimal(indices));
@@ -43,7 +75,7 @@ MatrixX3f fit_vanishing_points(const vector<LineSegment> & lines)
             vp.x() = scale * vp.x() + c.x(); // can be done with matrix multiplication
             vp.y() = scale * vp.y() + c.y();
         }
-        res.row(g) = vp;
+        res[g] = vp;
     }
     return res;
 }
