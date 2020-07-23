@@ -1,5 +1,6 @@
 ### Whats new in **v0.9.9**
-* VP estmation completely rewritten - besides RANSAC, PROSAC or Hough transform can be used
+* Model estimation rewritten
+  * RANSAC, RROSAC and Hough Transform estimators (only HT is used)
 
 ### Whats new in **v0.9.8**
 * Removed `set_num_threads`/`get_num_threads`. Threading is controlled by `num_threads` parameter in `find_line_segment_groups`.
