@@ -90,12 +90,16 @@ Eigen::ArrayXi estimate_multiple_structures(
     EstimatorType & estimator,
     const ModelType & model,
     int max_structures,
-    float tol)
+    float tol,
+    float garbage_tol
+    )
 {
     // ID of structure for each observation - inlier_flag[k] >= 0 means
     // that the observation k is inlier.
-    Eigen::ArrayXi inlier_flag(model.size());
-    inlier_flag.setConstant(-1);
+    Eigen::ArrayXi inlier_flag = Eigen::ArrayXi::Constant(model.size(), -1);
+
+    // Flags if the observation is close to a structure but not an inlier
+    Eigen::ArrayXi garbage_flag = Eigen::ArrayXi::Constant(model.size(), 0);
 
     // Must be consistent with (inlier_flag < 0).sum()
     // Updated in each iteration
@@ -106,16 +110,26 @@ Eigen::ArrayXi estimate_multiple_structures(
     while (num_observations >= model.minimum_set_size() && k < max_structures)
     {
         // List of unassigned observations
-        Eigen::ArrayXi observation_indices = nonzero(inlier_flag < 0);
+        Eigen::ArrayXi observation_indices = nonzero(inlier_flag<0 && garbage_flag==0);
         // Solve the model
         auto h = estimator.solve(model, observation_indices, tol);
         // Obtain inliers and flag them
-        Eigen::ArrayXi inliers_k = observation_indices(nonzero(model.error(h, observation_indices)<2*tol));
+        
+        auto observation_error = model.error(h, observation_indices);
+        
+        Eigen::ArrayXi inliers_k = observation_indices( nonzero(observation_error<tol));
         inlier_flag(inliers_k) = k;
+
+        Eigen::ArrayXi garbage_k = observation_indices(nonzero(observation_error>=tol && observation_error<garbage_tol));
+        garbage_flag(garbage_k) = 1;
+
         // Update number of unassigned observations
-        num_observations -= inliers_k.size();
+        num_observations -= inliers_k.size() + garbage_k.size();
         ++k;
     }
+
+    inlier_flag(nonzero(garbage_flag == 1)) = -1;
+
     return inlier_flag;
 }
 

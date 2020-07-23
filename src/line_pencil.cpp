@@ -61,9 +61,12 @@ ArrayXf LinePencilModel::get_weights(const ArrayXi & indices) const
         x.normalize();
         if (x.z() < 0.f)
             x = -x;
-        int u = trunc(x(0) * k1) + k;
-        int v = trunc(x(1) * k1) + k;
-        accumulator.block<3,3>(u-1,v-1) += length(a)+length(b);
+        int u = k1*x(0) + k;
+        int v = k1*x(1) + k;
+
+        accumulator.block<3,3>(u-1,v-1) += 1;
+        //accumulator.block<3,3>(u-1,v-1) += length(a)+length(b);
+        //accumulator(u,v) += length(a)+length(b);
     }
 
     //cout << accumulator << endl;
@@ -79,7 +82,7 @@ ArrayXf LinePencilModel::get_weights(const ArrayXi & indices) const
 
     p.z() = sqrt(1.f - (pow(p.x(),2.f) + pow(p.y(),2.f)));
 
-    return 1 - error(p, indices);
+    return inclination(anchor(indices,all), direction(indices,all), p).array().pow(4);
 }
 
 
@@ -145,17 +148,17 @@ void estimate_line_pencils(
     //RANSAC_Estimator<LinePencilModel> estimator(10000);
     
     // PROSAC_Estimator<LinePencilModel> estimator;
-    // estimator.eta = 0.01;
+    // estimator.eta = 0.1;
     // model.ht_num_hypotheses = 50000;
-    // model.ht_space_size = 257;
+    // model.ht_space_size = 128;
 
     DirectEstimator<LinePencilModel> estimator;
     model.ht_num_hypotheses = 50000;
     model.ht_space_size = 129;
-    estimator.inlier_threshold = 0.95;
+    estimator.inlier_threshold = 0.998;
 
     // run estimator on normalized lines
-    ArrayXi groups = estimate_multiple_structures(estimator, model, 4, 0.001);
+    ArrayXi groups = estimate_multiple_structures(estimator, model, 4, 0.001f, 0.01f);
 
     // groups contains an id which can be just put into the group_id
     // Set group_id to original lines - same order
