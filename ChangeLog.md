@@ -1,3 +1,8 @@
+## Whats new in **v0.9.10**
+* Switch for HT/PROSAC estimator in `find_line_segment_groups`
+* Fixed incorrect transform caused by possible selection of point inside the image
+* Parameter tuning
+
 ### Whats new in **v0.9.9**
 * Model estimation rewritten
   * RANSAC, RROSAC and Hough Transform estimators (only HT is used)
