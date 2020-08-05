@@ -36,6 +36,7 @@ LineSegment * find_line_segment_groups(
     InputPixelType * buffer, int width, int height, int stride,
     float min_length, // filtering
     bool refine,
+    bool use_prosac,
     int num_threads,
     int * n_lines 
     )
@@ -56,7 +57,7 @@ LineSegment * find_line_segment_groups(
     filtered.reserve(lines.size());
     _filter_lines(lines.begin(), lines.end(), back_inserter(filtered), min_length);
 
-    estimate_line_pencils(filtered);
+    estimate_line_pencils(filtered, use_prosac);
     auto & groupped = filtered;
     
     // Construct resulting array and copy data
@@ -123,7 +124,7 @@ ImageTransform compute_rectification_transform(
         ++k;
     }
 
-    Vector3f image_center {float(width)/2, float(height)/2, 0};
+    Vector3f image_center {float(width)/2, float(height)/2, 1};
 
     auto vp_v = select_vertical_point(vps, image_center, cfg.vertical_vp_angular_tolerance, height*cfg.vertical_vp_min_distance);
     auto vp_h = select_horizontal_point(vps, image_center, vp_v, width*cfg.horizontal_vp_min_distance);

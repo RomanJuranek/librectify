@@ -109,6 +109,7 @@ extern "C" DLL_PUBLIC LineSegment * find_line_segment_groups(
     InputPixelType * buffer, int width, int height, int stride,
     float min_length,
     bool refine,
+    bool use_prosac,
     int num_threads,
     int * n_lines);
 

@@ -31,6 +31,6 @@ public:
     Eigen::ArrayXf error(const hypothesis_type & h, const Eigen::ArrayXi & indices) const;
 };
 
-void estimate_line_pencils(std::vector<LineSegment> & lines);
+void estimate_line_pencils(std::vector<LineSegment> & lines, bool use_prosac);
 
 } // namespace

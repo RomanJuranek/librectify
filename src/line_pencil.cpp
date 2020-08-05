@@ -63,13 +63,10 @@ ArrayXf LinePencilModel::get_weights(const ArrayXi & indices) const
             x = -x;
         int u = k1*x(0) + k;
         int v = k1*x(1) + k;
-
-        accumulator.block<3,3>(u-1,v-1) += 1;
-        //accumulator.block<3,3>(u-1,v-1) += length(a)+length(b);
-        //accumulator(u,v) += length(a)+length(b);
+        accumulator.block<3,3>(u-1,v-1) += length(a) + length(b);
     }
 
-    //cout << accumulator << endl;
+    // cout << accumulator << endl;
 
     int max_u, max_v;
     float max_val = accumulator.maxCoeff(&max_u, &max_v);
@@ -135,7 +132,9 @@ ArrayXf LinePencilModel::error(const hypothesis_type & h, const ArrayXi & indice
 
 
 void estimate_line_pencils(
-    vector<LineSegment> & lines)
+    vector<LineSegment> & lines,
+    bool use_prosac
+    )
 {
     auto bb = bounding_box(lines);
     auto p = bbox_center(bb);
@@ -144,21 +143,24 @@ void estimate_line_pencils(
 
     // normalize lines
     LinePencilModel model(lines_norm);
+    ArrayXi groups;
 
-    //RANSAC_Estimator<LinePencilModel> estimator(10000);
-    
-    // PROSAC_Estimator<LinePencilModel> estimator;
-    // estimator.eta = 0.1;
-    // model.ht_num_hypotheses = 50000;
-    // model.ht_space_size = 128;
-
-    DirectEstimator<LinePencilModel> estimator;
-    model.ht_num_hypotheses = 50000;
-    model.ht_space_size = 129;
-    estimator.inlier_threshold = 0.998;
-
-    // run estimator on normalized lines
-    ArrayXi groups = estimate_multiple_structures(estimator, model, 4, 0.001f, 0.01f);
+    if (use_prosac)
+    {
+        PROSAC_Estimator<LinePencilModel> estimator;
+        estimator.eta = 0.01;
+        model.ht_num_hypotheses = 50000;
+        model.ht_space_size = 257;
+        groups = estimate_multiple_structures(estimator, model, 6, 0.001f, 0.004f);
+    }
+    else
+    {
+        DirectEstimator<LinePencilModel> estimator;
+        model.ht_num_hypotheses = 50000;
+        model.ht_space_size = 257;
+        estimator.inlier_threshold = 0.998;
+        groups = estimate_multiple_structures(estimator, model, 6, 0.001f, 0.004f);
+    }
 
     // groups contains an id which can be just put into the group_id
     // Set group_id to original lines - same order

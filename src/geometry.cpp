@@ -248,7 +248,7 @@ float distance(
     const Eigen::Vector3f & a,
     const Eigen::Vector3f & b)
 {
-    if (a.z() < EPS || b.z() < EPS)
+    if ((a.z() < EPS) || (b.z() < EPS))
         return INFINITY;
     else
         return Vector2f(a.x()-b.x(), a.y()-b.y()).norm();
