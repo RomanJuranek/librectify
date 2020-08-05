@@ -150,9 +150,9 @@ Vector3f select_vertical_point(
         bool angular_filter = abs((direction(v,center).adjoint() * Vector2f(0,1))) > cos_threshold;
         bool distance_filter = distance(v,center) > min_distance;
         #if LGROUP_DEBUG_PRINTS
-        clog << "select_vertical_point: coords=" << RowVector3f(v.coords)
-                << ", angle score=" << abs((v.direction(center).adjoint() * Vector2f(0,1)))
-                << ", distance=" << v.distance(center) << endl;
+        clog << "select_vertical_point: coords=" << RowVector3f(v)
+                << ", angle score=" << abs((direction(v,center).adjoint() * Vector2f(0,1)))
+                << ", distance=" << distance(v,center) << endl;
         #endif
         if (angular_filter && distance_filter)
         {
@@ -192,9 +192,9 @@ Vector3f select_horizontal_point(
         bool horizon_filter = angle_score < 0.1 && angle_score > -0.7;
         bool distance_filter = distance(v, center) > min_distance;
         #if LGROUP_DEBUG_PRINTS
-        clog << "select_horizontal_point: Selected: coords=" << RowVector3f(v.coords)
-             << ", horizon_score=" << (v.direction(center).adjoint() * vd).eval()
-             << ", distance=" << v.distance(center) << endl;
+        clog << "select_horizontal_point: Selected: coords=" << RowVector3f(v)
+             << ", horizon_score=" << (direction(v,center).adjoint() * vd).eval()
+             << ", distance=" << distance(v,center) << endl;
         #endif
         if (horizon_filter && distance_filter)
         {
