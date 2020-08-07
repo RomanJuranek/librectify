@@ -104,9 +104,8 @@ Configures how the transformation will be computed.
 
 Vertical vanishing point will be searched in vertical direction in `(-a, +a)` degrees (where `a` is `vertical_vp_angular_tolerance`) at minimum distance `vertical_vp_min_distance`.
 
-Horizontal vansihinf point will be searched in lower hald-plane at minimum distance `horizontal_vp_min_distance`.
 
-These search space constraints are important for
+The distance is a fraction of image half-diagonal size, i.e. `horizontal_vp_min_distance = 1` in image with size `(500x500)` is `sqrt(500^2 + 500^2) / 2 ~= 353` pixels. Allowing vanishing points width distance <1 can result in degenerate transform.
 
 ## Interface
 
