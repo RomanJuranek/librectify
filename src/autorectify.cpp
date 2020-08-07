@@ -72,19 +72,19 @@ template <class II>
 void draw_lines(II first, II last, Mat & image)
 {
     vector<Scalar> colors;
-    colors.push_back( Scalar(0,0,255) );
-    colors.push_back( Scalar(0,255,0) );
-    colors.push_back( Scalar(255,0,0) );
-    colors.push_back( Scalar(0,255,255) );
-    colors.push_back( Scalar(255,0,255) );
-    colors.push_back( Scalar(255,255,0) );
+    colors.push_back( Scalar(0,0,255) ); // r
+    colors.push_back( Scalar(0,255,0) ); // g
+    colors.push_back( Scalar(255,0,0) ); // b
+    colors.push_back( Scalar(255,255,0) ); // c
+    colors.push_back( Scalar(255,0,255) ); // m
+    colors.push_back( Scalar(0,255,255) ); // y
 
-    colors.push_back( Scalar(0,0,128) );
-    colors.push_back( Scalar(0,128,0) );
-    colors.push_back( Scalar(128,0,0) );
-    colors.push_back( Scalar(0,128,128) );
-    colors.push_back( Scalar(128,0,128) );
-    colors.push_back( Scalar(128,128,0) );
+    colors.push_back( Scalar(0,0,128) ); // r
+    colors.push_back( Scalar(0,128,0) ); // g
+    colors.push_back( Scalar(128,0,0) ); // b
+    colors.push_back( Scalar(128,128,0) ); // c
+    colors.push_back( Scalar(128,0,128) ); // m
+    colors.push_back( Scalar(0,128,128) ); // y
 
     while(first != last)
     {
