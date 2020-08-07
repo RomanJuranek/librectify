@@ -94,8 +94,11 @@ Inputs
 buffer : Pointer to image buffer. Layout is described above.
 width, height : Image dimensions in pixels
 stride : Step between rows in array elements (not bytes!)
-n_lines : Ptr to int where the number of detected lines will be returned
 min_length : Only lines longer than min_length will be returned
+refine: Connect nearby line segments
+use_prosac: Use PROSAC estimator instead of Hough Transform
+num_threads: Number of threads to use (where possible)
+n_lines : Ptr to int where the number of detected lines will be returned
 
 Output
 ------
@@ -136,13 +139,13 @@ struct RectificationConfig
 {
     // Search space for vertical vanishing point (degrees)
     float vertical_vp_angular_tolerance {40};
-    // Minimal distance of vertical VP from from image center (ratio of image height)
-    float vertical_vp_min_distance {0.7f};
+    // Minimal distance of vertical VP from from image center (ratio of image half diagonal)
+    float vertical_vp_min_distance {1.5f};
     // Strategy for vertical direction processing
     RectificationStrategy v_strategy {RECTIFY};
 
-    // Minimal distance of horizontal VP from from image center (ratio of image width)
-    float horizontal_vp_min_distance {0.7f};
+    // Minimal distance of horizontal VP from from image center (ratio of image half diagonal)
+    float horizontal_vp_min_distance {1.5f};
     // Strategy for horizontal direction processing
     RectificationStrategy h_strategy {RECTIFY};
 };

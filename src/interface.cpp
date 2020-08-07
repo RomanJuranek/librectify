@@ -126,8 +126,13 @@ ImageTransform compute_rectification_transform(
 
     Vector3f image_center {float(width)/2, float(height)/2, 1};
 
-    auto vp_v = select_vertical_point(vps, image_center, cfg.vertical_vp_angular_tolerance, height*cfg.vertical_vp_min_distance);
-    auto vp_h = select_horizontal_point(vps, image_center, vp_v, width*cfg.horizontal_vp_min_distance);
+    float diagonal_size = image_center.head(2).norm();
+
+    float min_v_distance = max(cfg.vertical_vp_min_distance, 1.0f) * diagonal_size;
+    auto vp_v = select_vertical_point(vps, image_center, cfg.vertical_vp_angular_tolerance, min_v_distance);
+    
+    float min_h_distance = max(cfg.horizontal_vp_min_distance, 1.0f) * diagonal_size;
+    auto vp_h = select_horizontal_point(vps, image_center, vp_v, min_h_distance);
 
     Vector3f v1 = vp_h;
     if (v1.z() != 0)
