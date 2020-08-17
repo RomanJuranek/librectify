@@ -36,7 +36,6 @@ LineSegment * find_line_segment_groups(
     InputPixelType * buffer, int width, int height, int stride,
     float min_length, // filtering
     bool refine,
-    bool use_prosac,
     int num_threads,
     int * n_lines 
     )
@@ -57,7 +56,7 @@ LineSegment * find_line_segment_groups(
     filtered.reserve(lines.size());
     _filter_lines(lines.begin(), lines.end(), back_inserter(filtered), min_length);
 
-    estimate_line_pencils(filtered, use_prosac);
+    estimate_line_pencils(filtered, MAX_MODELS, ESTIMATOR_INLIER_MAX_ANGLE_DEG, ESTIMATOR_GARBAGE_MAX_ANGLE_DEG, ctx);
     auto & groupped = filtered;
     
     // Construct resulting array and copy data

@@ -111,15 +111,21 @@ void draw_lines(II first, II last, Mat & image)
 
 // Wrapper for find_line_segment_groups accepting OpenCV images of any size
 LineSegment * detect_line_groups(
-    const Mat & image, int max_size, bool refine, bool use_prosac,
+    const Mat & image, float max_size, bool refine,
     int num_threads,
     int * n_lines)
 {
     Mat image_f = image;
     image.convertTo(image_f, CV_32F, 1/256.0);
+
+    int max_size_px = int(max_size);
+    if (max_size < 1)
+    {
+        max_size_px = int(max(image.rows, image.cols) * max_size);
+    }
     
     float scale;
-    image_f = prescale_image(image_f, max_size, scale);
+    image_f = prescale_image(image_f, max_size_px, scale);
 
     float * buffer = (float*)image_f.data;
     int w = image_f.cols;
@@ -127,7 +133,7 @@ LineSegment * detect_line_groups(
     int stride = w;
     int min_length = float(max(h,w)) / 100.0f;
 
-    LineSegment * lines = find_line_segment_groups(buffer, w, h, stride, min_length, refine, use_prosac, num_threads, n_lines);
+    LineSegment * lines = find_line_segment_groups(buffer, w, h, stride, min_length, refine, num_threads, n_lines);
 
     // Scale lines back to the original image
     for (size_t i = 0; i < *n_lines; ++i)
@@ -249,9 +255,8 @@ struct Options
     string filename {""};
     string suffix {"warp"};
     bool refine_lines {false};
-    bool prosac_estimator {false};
     int num_threads {-1};
-    int max_image_size {1200};
+    float max_image_size {1200};
 };
 
 template <class II>
@@ -284,15 +289,11 @@ Options process_arguments(II first, II last)
             ++first;
             opt.num_threads = stoi(*first);
         }
-        else if (*first == "-p")
-        {
-            opt.prosac_estimator = true;
-        }
         else if (*first == "-m")
         {
             ++first;
-            opt.max_image_size = stoi(*first);
-            opt.max_image_size = std::min(opt.max_image_size, 2048);
+            opt.max_image_size = stof(*first);
+            //opt.max_image_size = std::min(opt.max_image_size, 2048);
         }
         else
         {
@@ -331,17 +332,14 @@ int main(int argc, char ** argv)
     ///////////////////////////////////////////////////////////////////////////
 
     // Detect lines in image
-    
     std::chrono::steady_clock::time_point t0 = std::chrono::steady_clock::now();
     int n_lines = 0;
-    LineSegment * lines = detect_line_groups(image_8uc, opts.max_image_size, opts.refine_lines, opts.prosac_estimator, opts.num_threads, &n_lines);
+    LineSegment * lines = detect_line_groups(image_8uc, opts.max_image_size, opts.refine_lines, opts.num_threads, &n_lines);
     // Now we have n_lines segments lines[0] .. lines[n_lines-1]
     // We can modify them, e.g. add user defined lines (remember to assign them to the correct group)
     std::chrono::steady_clock::time_point t1 = std::chrono::steady_clock::now();
     clog << "Detection: " << std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count() << " [ms]" << endl;
     
-
-
     // Setup parameters for rectification
     RectificationConfig cfg;
     cfg.h_strategy = opts.h_strategy;

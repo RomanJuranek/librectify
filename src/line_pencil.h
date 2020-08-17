@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <Eigen/Core>
+#include "threading.h"
 #include "librectify.h"
 
 
@@ -29,8 +30,9 @@ public:
     hypothesis_type fit(const Eigen::ArrayXi & indices) const;
     hypothesis_type fit_optimal(const Eigen::ArrayXi & indices) const;
     Eigen::ArrayXf error(const hypothesis_type & h, const Eigen::ArrayXi & indices) const;
+    float inlier_score(const hypothesis_type & h, float tol, const Eigen::ArrayXi & indices) const;
 };
 
-void estimate_line_pencils(std::vector<LineSegment> & lines, bool use_prosac);
+void estimate_line_pencils(std::vector<LineSegment> & lines, int, float, float, const ThreadContext & ctx);
 
 } // namespace

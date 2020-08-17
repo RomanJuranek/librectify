@@ -6,12 +6,14 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
+#include "config.h"
 #include "librectify.h"
 #include "geometry.h"
 #include "estimator.h"
 #include "prosac.h"
 #include "utils.h"
 #include "line_pencil.h"
+#include "threading.h"
 
 using namespace std;
 using namespace Eigen;
@@ -63,7 +65,8 @@ ArrayXf LinePencilModel::get_weights(const ArrayXi & indices) const
             x = -x;
         int u = k1*x(0) + k;
         int v = k1*x(1) + k;
-        accumulator.block<3,3>(u-1,v-1) += length(a) + length(b);
+        //accumulator.block<3,3>(u-1,v-1) += length(a) + length(b);
+        accumulator(u,v) += length(a) + length(b);
     }
 
     // cout << accumulator << endl;
@@ -131,9 +134,23 @@ ArrayXf LinePencilModel::error(const hypothesis_type & h, const ArrayXi & indice
 }
 
 
+float LinePencilModel::inlier_score(const hypothesis_type & h, float tol, const ArrayXi & indices) const
+{
+    return ((error(h, indices) < tol).cast<float>() * length(indices).array()).sum();
+}
+
+
+float cos_threshold(float deg)
+{
+    return 1.0f - cos(deg / 180 * M_PI);
+}
+
 void estimate_line_pencils(
     vector<LineSegment> & lines,
-    bool use_prosac
+    int max_models,
+    float inlier_angular_tolerance,
+    float garbage_angular_tolerance,
+    const ThreadContext & ctx
     )
 {
     auto bb = bounding_box(lines);
@@ -141,26 +158,15 @@ void estimate_line_pencils(
     float scale = bbox_size(bb).maxCoeff();
     auto lines_norm = normalize_lines(lines, p, scale);
 
+    float inlier_tol = cos_threshold(inlier_angular_tolerance);
+    float garbage_tol = cos_threshold(garbage_angular_tolerance);
+
     // normalize lines
     LinePencilModel model(lines_norm);
     ArrayXi groups;
 
-    if (use_prosac)
-    {
-        PROSAC_Estimator<LinePencilModel> estimator;
-        estimator.eta = 0.01;
-        model.ht_num_hypotheses = 50000;
-        model.ht_space_size = 257;
-        groups = estimate_multiple_structures(estimator, model, 6, 0.001f, 0.004f);
-    }
-    else
-    {
-        DirectEstimator<LinePencilModel> estimator;
-        model.ht_num_hypotheses = 50000;
-        model.ht_space_size = 257;
-        estimator.inlier_threshold = 0.998;
-        groups = estimate_multiple_structures(estimator, model, 6, 0.001f, 0.004f);
-    }
+    RANSAC_Estimator<LinePencilModel> estimator(RANSAC_MAX_ITER, ctx);
+    groups = estimate_multiple_structures(estimator, model, max_models, inlier_tol, garbage_tol);
 
     // groups contains an id which can be just put into the group_id
     // Set group_id to original lines - same order

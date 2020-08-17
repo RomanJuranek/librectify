@@ -8,6 +8,8 @@
 
 #include "utils.h"
 #include "math_utils.h"
+#include "threading.h"
+
 
 namespace librectify
 {
@@ -26,44 +28,53 @@ class RANSAC_Estimator: Estimator<ModelType>
 {
     int N;
     std::mt19937 rng;
+    const ThreadContext & ctx;
 public:
     using hypothesis_type = typename ModelType::hypothesis_type;
-    RANSAC_Estimator(int max_iter) :N(max_iter), rng(std::random_device()())
+    RANSAC_Estimator(int max_iter, const ThreadContext & c = ThreadContext(-1))
+    :N(max_iter), ctx(c), rng(std::random_device()())
     { }
     hypothesis_type solve(const ModelType & model, const Eigen::ArrayXi & indices, float tol)
     {
         hypothesis_type best_h;
-        int I_N_best = 0;
-        Eigen::ArrayXf best_err;
+        float I_N_best = 0;
+        //Eigen::ArrayXf best_err;
         
         Eigen::ArrayXi sample(model.minimum_set_size());
-        Eigen::ArrayXi sample_indices(model.minimum_set_size());
+        //Eigen::ArrayXi sample_indices(model.minimum_set_size());
 
+        #pragma omp parallel for firstprivate(sample), shared(best_h, I_N_best),  num_threads(ctx.get_num_threads()) if (ctx.enabled())
         for (int i = 0; i < N; ++i)
         {
+            #pragma omp critical (RANSAC_sample)
             choice_knuth(indices.size(), model.minimum_set_size(), rng, sample);
-            sample_indices = indices(sample);
+
+            Eigen::ArrayXi sample_indices = indices(sample);
 
             if (!model.sample_check(sample_indices)) continue;
             auto h = model.fit(sample_indices);
-            auto err = model.error(h, indices);
-            int I_N = (err < tol).count();
+            //Eigen::ArrayXf err = model.error(h, indices);
+            //float I_N = ((err < tol).cast<float>() * model.length(indices).array()).sum();
+            float I_N = model.inlier_score(h, tol, indices);
 
             //std::cerr << sample_indices.transpose() << ", " << "I_N=" << I_N << ", h= " << h.transpose() << std::endl;
 
+            #pragma omp critical (RANSAC_update)
             if (I_N > I_N_best)
             {
                 //std::cerr << i << ": " << I_N << std::endl;
                 I_N_best = I_N;
                 best_h = h;
-                best_err = err;
+                //best_err = err;
                 //std::cerr << h.transpose() << std::endl;
             }
         }
+        
         //std::cerr << "---" <<std::endl;
-
+        Eigen::ArrayXf best_err = model.error(best_h, indices);
         auto inliers = nonzero(best_err < tol);
         return model.fit_optimal(indices(inliers));
+        //return best_h;
     }
 };
 

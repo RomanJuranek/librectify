@@ -365,7 +365,7 @@ vector<LineSegment> postprocess_lines_segments(
             B << lj.x1, lj.y1, lj.x2, lj.y2;
             V.col(0) = d.row(j);
             V.col(1) = n.row(j);
-            if ( abs((U.adjoint() * V)(0,0)) < 0.95)  // cos(max_angular_difference)
+            if ( abs((U.adjoint() * V)(0,0)) < 0.99)  // cos(max_angular_difference)
             {
                 continue;
             }
@@ -379,10 +379,10 @@ vector<LineSegment> postprocess_lines_segments(
                 W.noalias() = ((B.rowwise() - A.row(0)) * U) / l(i);
             }
 
-            if (W.col(1).cwiseAbs().maxCoeff() < 0.05)
+            if (W.col(1).cwiseAbs().maxCoeff() < 0.02)
             {
                 auto x = W.col(0).array();
-                if ((x > -0.2).any() && (x < 1.2).any())
+                if ((x > -0.5).any() && (x < 1.5).any())
                 {
                     //cerr << l(i) << "," << l(j) << endl;
                     //cerr << "A=\n" << A << endl;
