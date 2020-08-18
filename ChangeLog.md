@@ -1,3 +1,6 @@
+## Whats new in **v0.9.11**
+* Removed HT/PROSAC switch, pure RANSAC is used since it proved to be most robust
+
 ## Whats new in **v0.9.10**
 * Switch for HT/PROSAC estimator in `find_line_segment_groups`
 * Fixed incorrect transform caused by possible selection of point inside the image

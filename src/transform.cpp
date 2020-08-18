@@ -189,7 +189,7 @@ Vector3f select_horizontal_point(
             continue; // Avoid selection of the same point as vertical
         }
         float angle_score = direction(v, center).adjoint() * vd;
-        bool horizon_filter = angle_score < 0.1 && angle_score > -0.7;
+        bool horizon_filter = angle_score < 0.05 && angle_score > -0.7;
         bool distance_filter = distance(v, center) > min_distance;
         #if LGROUP_DEBUG_PRINTS
         clog << "select_horizontal_point: Selected: coords=" << RowVector3f(v)
