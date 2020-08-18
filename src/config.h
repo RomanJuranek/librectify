@@ -24,7 +24,7 @@ using InputPixelType = float;
 
 #define ESTIMATOR_INLIER_MAX_ANGLE_DEG 2.0f
 
-#define ESTIMATOR_GARBAGE_MAX_ANGLE_DEG 5.0f
+#define ESTIMATOR_GARBAGE_MAX_ANGLE_DEG 4.0f
 
 #define RANSAC_MAX_ITER 10000
 
@@ -44,13 +44,13 @@ using InputPixelType = float;
 #define SEED_RATIO 0.95
 
 // Magnitude tolerance during tracing
-#define TRACE_TOLERANCE 0.3
+#define TRACE_TOLERANCE 0.25f
 
 // Mean reprojection error of pixels on a line
 #define LINE_MAX_ERR 2.0f
 
 // Mean weight of pixels on a line
-#define LINE_MIN_WEIGHT 0.03f
+#define LINE_MIN_WEIGHT 0.05f
 
 // Minimal line length
 #define LINE_MIN_LENGTH 5.f
