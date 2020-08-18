@@ -102,9 +102,9 @@ void draw_lines(II first, II last, Mat & image)
             clr = colors[(g)%12];
             w = 3;
         }
-        line(image, cv::Point(l.x1, l.y1), cv::Point(l.x2, l.y2), clr, w);
-        circle(image, cv::Point(l.x1, l.y1), 5, clr, -1);
-        circle(image, cv::Point(l.x2, l.y2), 5, clr, -1);
+        line(image, cv::Point(int(l.x1), int(l.y1)), cv::Point(int(l.x2), int(l.y2)), clr, w);
+        circle(image, cv::Point(int(l.x1), int(l.y1)), 5, clr, -1);
+        circle(image, cv::Point(int(l.x2), int(l.y2)), 5, clr, -1);
         ++first;
     }
 }
@@ -131,7 +131,7 @@ LineSegment * detect_line_groups(
     int w = image_f.cols;
     int h = image_f.rows;
     int stride = w;
-    int min_length = float(max(h,w)) / 100.0f;
+    float min_length = float(max(h,w)) / 100.0f;
 
     LineSegment * lines = find_line_segment_groups(buffer, w, h, stride, min_length, refine, num_threads, n_lines);
 
@@ -172,15 +172,15 @@ void homography_from_corners(const ImageTransform & t, float clip, Mat & H, Size
     dst_size = Size(int(width), int(height));
 
     // New zero coordinate
-    xmin = xc - 0.5*width;
-    ymin = yc - 0.5*height;
+    xmin = xc - 0.5f*width;
+    ymin = yc - 0.5f*height;
 
     // Calc the transform
     vector<Point2f> src;
-    src.push_back(Point2f(0,       0));
-    src.push_back(Point2f(t.width, 0));
-    src.push_back(Point2f(0,       t.height));
-    src.push_back(Point2f(t.width, t.height));
+    src.push_back(Point2f(0.f,            0.f));
+    src.push_back(Point2f(float(t.width), 0.f));
+    src.push_back(Point2f(0.f,            float(t.height)));
+    src.push_back(Point2f(float(t.width), float(t.height)));
 
     vector<Point2f> dst;
     dst.push_back(Point2f(t.top_left.x - xmin,     t.top_left.y - ymin));
