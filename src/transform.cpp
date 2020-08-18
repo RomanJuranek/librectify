@@ -144,7 +144,7 @@ Vector3f select_vertical_point(
     clog << "select_vertical_point: min distance=" << min_distance << endl;
     clog << "select_vertical_point: threshold=" << cos_threshold << endl;
     #endif
-    for (size_t i = 0; i < vps.rows(); ++i)
+    for (Index i = 0; i < vps.rows(); ++i)
     {
         auto & v = vps.row(i);
         bool angular_filter = abs((direction(v,center).adjoint() * Vector2f(0,1))) > cos_threshold;
@@ -181,7 +181,7 @@ Vector3f select_horizontal_point(
     clog << "select_horizontal_point: min distance=" << min_distance << endl;
     #endif
 
-    for (size_t i = 0; i < vps.rows(); ++i)
+    for (Index i = 0; i < vps.rows(); ++i)
     {
         auto & v = vps.row(i);
         if (Vector3f(v) == vertical)

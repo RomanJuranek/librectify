@@ -34,7 +34,7 @@ LinePencilModel::LinePencilModel(const vector<LineSegment> & lines)
 
 int LinePencilModel::size() const
 {
-    return h.rows();
+    return int(h.rows());
 }
 
 
@@ -63,8 +63,8 @@ ArrayXf LinePencilModel::get_weights(const ArrayXi & indices) const
         x.normalize();
         if (x.z() < 0.f)
             x = -x;
-        int u = k1*x(0) + k;
-        int v = k1*x(1) + k;
+        int u = round(k1*x(0) + k);
+        int v = round(k1*x(1) + k);
         //accumulator.block<3,3>(u-1,v-1) += length(a) + length(b);
         accumulator(u,v) += length(a) + length(b);
     }
@@ -142,7 +142,7 @@ float LinePencilModel::inlier_score(const hypothesis_type & h, float tol, const 
 
 float cos_threshold(float deg)
 {
-    return 1.0f - cos(deg / 180 * M_PI);
+    return 1.0f - cos(deg / 180.f * float(M_PI));
 }
 
 void estimate_line_pencils(
