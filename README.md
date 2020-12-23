@@ -1,7 +1,7 @@
 # `librectify`
 &copy; 2020, Roman Juranek <ijuranek@fit.vutbr.cz>
 
-Minimalistic library for image perspective correction. The library prvides API for automated identification of converging line groups and image transform computation from automatic identification of two orthogonal vanishing points. The library does not warp the image, this is in the hands of the user.
+Minimalistic library for image perspective correction. The library prvides API for automated identification of converging line groups and image transform computation from automatic identification of two orthogonal vanishing points. The library does not warp the image, this is in the hands of the user. We provide sources for academic purposes, for commercial use, please contact the author.
 
 _Development of this software was funded by
 TACR project TH04010394, Progressive Image Processing Algorithms._
@@ -44,6 +44,11 @@ There are more than one _strategy_ how to calculate the transform - user can spe
 Here is an example of warped image  calcualted by `cv::warpPerspective` (see `autorectify.cpp` for code).
 
 ![Warped](doc/image.jpg_warp.jpg)
+
+
+# Contribute
+
+If you have suggestions regarding the library, submit an issue. If you are brave enough, fork and improve!
 
 ---
 
