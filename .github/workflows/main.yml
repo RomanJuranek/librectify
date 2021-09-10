@@ -25,15 +25,16 @@ jobs:
         cd include/eigen
         mkdir build
         cd build
-        cmake -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_INSTALL_PREFIX=C:/Users/pcmlich-virt/Desktop/eigen3 ..
+        cmake -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DCMAKE_INSTALL_PREFIX=C:/tools/eigen3 ..
         cmake --build . --config Release
         cmake --build . --config Release --target install
         cd ../../..
 
         mkdir build
         cd build
-        cmake -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -Deigen3_DIR=C:\Users\pcmlich-virt\Desktop\eigen3\share\eigen3\cmake\ -DOpenCV_DIR=C:\tools\opencv\build\ ..
+        cmake -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -Deigen3_DIR=C:\tools\eigen3\share\eigen3\cmake\ -DOpenCV_DIR=C:\tools\opencv\build\ ..
         cmake --build . --config Release
+        for /R C:\tools\opencv\build %%f in (*.dll) do copy %%f "%CD%\src\Release"
 
       shell: cmd
 
