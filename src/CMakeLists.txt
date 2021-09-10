@@ -8,6 +8,11 @@ find_package(OpenCV REQUIRED)
 
 set(CMAKE_BUILD_TYPE RELEASE)
 
+if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+     # using Visual Studio C++
+     add_definitions(-D_USE_MATH_DEFINES)
+endif()
+
 add_compile_options(-ffast-math -msse2 -msse3 -mssse3 -msse4 -msse4.1 -mavx -mfma -mfpmath=sse -O3)
 #add_compile_options(-O1)
 
