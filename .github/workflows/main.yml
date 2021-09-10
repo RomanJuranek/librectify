@@ -8,7 +8,6 @@ jobs:
     strategy:
       matrix:
         os: [windows-2019]
-        version: ['5.15.2']
     steps:
     - uses: actions/checkout@v2
       with:
