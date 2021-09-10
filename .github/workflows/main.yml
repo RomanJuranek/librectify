@@ -34,7 +34,6 @@ jobs:
         cd build
         cmake -DCMAKE_GENERATOR_PLATFORM=x64 -DCMAKE_BUILD_TYPE=RELEASE -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -Deigen3_DIR=C:\Users\pcmlich-virt\Desktop\eigen3\share\eigen3\cmake\ -DOpenCV_DIR=C:\tools\opencv\build\ ..
         cmake --build . --config Release
-        7z a -tzip librectify.zip -r *
 
       shell: cmd
 
@@ -43,4 +42,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: librectify.zip
-        path: ./build/librectify.zip
+        path: ./build/Release/*
