@@ -47,6 +47,12 @@ LineSegment * find_line_segment_groups(
     // Detect the lines
     auto lines = find_line_segments(im, SEED_DIST, SEED_RATIO, TRACE_TOLERANCE, ctx);
 
+    if (lines.size() < 2)
+    {
+        *n_lines = 0;
+        return nullptr;
+    }
+
     if (refine)
     {
         lines = postprocess_lines_segments(lines, ctx);
@@ -55,6 +61,12 @@ LineSegment * find_line_segment_groups(
     vector<LineSegment> filtered;
     filtered.reserve(lines.size());
     _filter_lines(lines.begin(), lines.end(), back_inserter(filtered), min_length);
+
+    if (filtered.size() == 0)
+    {
+        *n_lines = 0;
+        return nullptr;
+    }
 
     estimate_line_pencils(filtered, MAX_MODELS, ESTIMATOR_INLIER_MAX_ANGLE_DEG, ESTIMATOR_GARBAGE_MAX_ANGLE_DEG, ctx);
     auto & groupped = filtered;
